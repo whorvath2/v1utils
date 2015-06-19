@@ -25,8 +25,18 @@ public class TeamModder{
 	/*
 	*/
 	public static void main(String[] arguments){
-		new TeamModder();
-		System.out.println("Connector = " + connector);
+		TeamModder modder = getInstance();
+		System.out.println(modder);
 	}
-
+	/*
+	*/
+	public static TeamModder getInstance(){
+		return new TeamModder();
+	}
+	/*
+	*/
+	@Override
+	public String toString(){
+		return "TeamModder:\n\tConnector: " + connector;
+	}
 }
