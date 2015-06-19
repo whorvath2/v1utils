@@ -1,0 +1,64 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.billhorvath.v1mods</groupId>
+	<artifactId>TeamModder</artifactId>
+	<packaging>jar</packaging>
+	<version>1.0</version>
+	<name>TeamModder</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	
+	<dependencies>
+<!-- 
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.plexus</groupId>
+			<artifactId>plexus-utils</artifactId>
+			<version>1.1</version>
+		</dependency>
+ -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.versionone</groupId>
+			<artifactId>VersionOne.SDK.Java.APIClient</artifactId>
+				<version>15.0.0</version>
+				<type>jar</type>
+				<scope>compile</scope>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+			<archive>
+				<manifest>
+					<addClasspath>true</addClasspath>
+					<mainClass>com.billhorvath.v1mods.TeamModder</mainClass>
+				</manifest>
+			</archive>
+			<descriptorRefs>
+				<descriptorRef>jar-with-dependencies</descriptorRef>
+			</descriptorRefs>
+		</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+
+</project>
