@@ -34,7 +34,9 @@ public class TeamModder{
 	*/
 	public static void main(String[] arguments){
 		TeamModder modder = getInstance();
-		System.out.println(modder.memberList());
+		boolean result = modder.addToTeam("10326", "Test Team");
+		
+		System.out.println("result = " + result);
 		
 	}
 	/*
@@ -43,6 +45,48 @@ public class TeamModder{
 		return new TeamModder();
 	}
 	/*
+	Adds the Member identified by memberOid to the team called teamName.
+	
+	@return true if the member was successfully added to the team and the results were saved; false otherwise.
+	*/
+	private boolean addToTeam(String memberOid, String teamName){
+	
+		assert teamName != null;
+		assert memberOid != null;
+		
+		boolean result = false;
+		IAssetType assetType = services.getMeta().getAssetType("Team");
+		Query query = new Query(assetType);
+		IAttributeDefinition nameAttr = assetType.getAttributeDefinition("Name");
+		query.getSelection().add(nameAttr);
+		
+		try{
+			QueryResult queryResult = services.retrieve(query);
+			Asset targetTeam = null;
+			
+			for (Asset team: queryResult.getAssets()){
+				String str = team.getAttribute(nameAttr).getValue().toString();
+				assert str != null;
+				if (teamName.equals(str)){
+					targetTeam = team;
+					break;
+				}
+			}
+			
+			IAttributeDefinition membersAttr = assetType.getAttributeDefinition(
+				"CapacityExcludedMembers");
+			targetTeam.addAttributeValue(membersAttr, "Member:" + memberOid);
+			services.save(targetTeam);
+			result = true;
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+		return result;
+		
+	}
+	
+	/*
 	Returns a String representation of the members attached to this VersionOne installation.
 	*/
 	public String memberList(){
@@ -50,20 +94,20 @@ public class TeamModder{
 		Query query = new Query(assetType);
 		IAttributeDefinition nameAttr = assetType.getAttributeDefinition("Name");
 		query.getSelection().add(nameAttr);
-		String str = "VersionOne Members:"; 
+		String result = "VersionOne Members:"; 
 		try{
-			QueryResult result = services.retrieve(query);
+			QueryResult queryResult = services.retrieve(query);
 		
-			for (Asset member: result.getAssets()){
-				str += "\n\tNumber: " + member.getOid().getToken() 
+			for (Asset member: queryResult.getAssets()){
+				result += "\n\tNumber: " + member.getOid().getToken() 
 					+ "\tName: " + member.getAttribute(nameAttr).getValue();
 			}
 		}
 		catch(Exception e){
 			e.printStackTrace();
-			str += " ERROR QUERYING FOR MEMBERS";
+			result += " ERROR QUERYING FOR MEMBERS";
 		}
-		return str;
+		return result;
 	}
 	
 	/*
