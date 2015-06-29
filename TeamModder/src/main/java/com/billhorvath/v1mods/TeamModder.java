@@ -7,6 +7,7 @@ import com.versionone.apiclient.interfaces.*;
 
 
 /**
+ * The purpose of this class is to allow modification of VersionOne teams by way of the API.
 */
 
 public class TeamModder{
@@ -40,6 +41,8 @@ public class TeamModder{
 		
 	}
 	/*
+	Returns an instance of TeamModder.
+	@return A default TeamModder instance.
 	*/
 	public static TeamModder getInstance(){
 		return new TeamModder();
@@ -88,6 +91,7 @@ public class TeamModder{
 	
 	/*
 	Returns a String representation of the members attached to this VersionOne installation.
+	@return A String representation of the members attached to this VersionOne installation.
 	*/
 	public String memberList(){
 		IAssetType assetType = services.getMeta().getAssetType("Member");
@@ -111,6 +115,8 @@ public class TeamModder{
 	}
 	
 	/*
+	Returns a human-readable form of the fields in this TeamModder.
+	@return A human-readable form of the fields in this TeamModder.
 	*/
 	@Override
 	public String toString(){
