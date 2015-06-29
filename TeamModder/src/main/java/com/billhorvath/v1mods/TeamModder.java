@@ -50,6 +50,8 @@ public class TeamModder{
 	/*
 	Adds the Member identified by memberOid to the team called teamName.
 	
+	@param memberOid The string representation of the Oid for the member to be added to the team.
+	@param teamName The name of the team to which the member is to be added.	
 	@return true if the member was successfully added to the team and the results were saved; false otherwise.
 	*/
 	private boolean addToTeam(String memberOid, String teamName){
@@ -83,6 +85,7 @@ public class TeamModder{
 			result = true;
 		}
 		catch(Exception e){
+			assert false;
 			e.printStackTrace();
 		}
 		return result;
