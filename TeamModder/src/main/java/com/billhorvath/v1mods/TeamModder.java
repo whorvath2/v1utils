@@ -1,5 +1,7 @@
 package com.billhorvath.v1mods;
 
+import java.io.*;
+import java.net.*;
 import com.versionone.*;
 import com.versionone.apiclient.*;
 import com.versionone.apiclient.services.*;
@@ -11,23 +13,17 @@ import com.versionone.apiclient.interfaces.*;
 */
 
 public class TeamModder{
+
 	private final Services services;
 
-	public TeamModder(){
-		V1Connector connector = null;
-		try{
-			connector = V1Connector
-				.withInstanceUrl("https://www8.v1host.com/ParishSOFTLLC/")
-				.withUserAgentHeader("TeamModder", "1.0")
-				.withAccessToken("1.bpCz5yA+H0uMvuMlCJwTlh+5dAA=")
-				.build();
+	private TeamModder(){
+		V1Services v1 = V1Services.getInstance(TokenUtils.CERT_FILE_LOC);
+		if (v1 == null){
+			assert false;
+			System.out.println("ERROR: Unable to initialize VersionOne services.");
+			System.exit(1);
 		}
-		catch (Exception e){
-			e.printStackTrace();
-		}
-		assert connector != null;
-		
-		this.services = new Services(connector);
+		this.services = v1.services();
 		
 	}
 	
@@ -40,6 +36,7 @@ public class TeamModder{
 		System.out.println("result = " + result);
 		
 	}
+	
 	/*
 	Returns an instance of TeamModder.
 	@return A default TeamModder instance.
@@ -47,6 +44,10 @@ public class TeamModder{
 	public static TeamModder getInstance(){
 		return new TeamModder();
 	}
+	
+
+	
+	
 	/*
 	Adds the Member identified by memberOid to the team called teamName.
 	
