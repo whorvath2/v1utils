@@ -22,9 +22,14 @@
 		<dependency>
 			<groupId>com.versionone</groupId>
 			<artifactId>VersionOne.SDK.Java.APIClient</artifactId>
-				<version>15.0.0</version>
-				<type>jar</type>
-				<scope>compile</scope>
+			<version>15.0.0</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<version>1.52</version>
 		</dependency>
 	</dependencies>
 	<build>
