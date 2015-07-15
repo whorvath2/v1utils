@@ -11,8 +11,8 @@ public class TokenUtils{
 	protected final static String CERT_FILE_LOC = "./enc_token";
 	
 	/**
-	Creates a file containing the platform-independent, encrypted form of the access token submitted as the first argument.
-	
+	Creates a file containing the platform-independent, encrypted form of the access token submitted as the first argument. <b>If no arguments are submitted, this class will exit with an error message.</b>
+	@param args String arguments submitted from the command line.
 	*/
 	public static void main(String[] args){
 		if (args == null || args.length == 0){
@@ -30,7 +30,7 @@ public class TokenUtils{
 	}
 	
 	/**
-	Encrypts token and stores it in CERT_FILE_LOC.
+	Encrypts <code>token</code> and stores it in <code>CERT_FILE_LOC</code>.
 	@param token The plain-text token to be encrypted.
 	*/
 	private static void createEncFile(String token){
@@ -44,10 +44,11 @@ public class TokenUtils{
 		}
 	}
 	/**
-	Encrypts token and stores it in certFile.
+	Encrypts <code>token</code> and stores it in <code>certFile</code>.
 	@param token The plain-text token to be encrypted.
 	@param certFile The location of the file to which the encrypted token will
 		be written.	
+	@return True if token was successfully written out to certFile; false otherwise.
 	*/
 	public static boolean setAccessToken(String token, String certFile){
 		File file = new File(certFile);

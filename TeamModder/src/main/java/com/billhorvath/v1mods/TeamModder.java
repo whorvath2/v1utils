@@ -30,6 +30,8 @@ public class TeamModder{
 	}
 	
 	/**
+	Allows this class to be run from the command line.
+	@param arguments Command-line arguments. Ignored in this class.
 	*/
 	public static void main(String[] arguments){
 		TeamModder modder = getInstance();

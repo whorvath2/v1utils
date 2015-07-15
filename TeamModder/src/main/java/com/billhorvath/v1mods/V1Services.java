@@ -34,6 +34,7 @@ public class V1Services{
 	/**
 	Returns a VersionOne V1Services object which can be used to access the
 		VersionOne API. Returns null if the file at certFile doesn't exist.
+	@param certFile The location of the file containing the encrypted token.
 	@return A V1Services instance connected to V1_LOC, or null if the file at certFile doesn't exist.
 	*/
 	public static V1Services getInstance(String certFile){
@@ -71,6 +72,8 @@ public class V1Services{
 	}
 
 	/**
+	Returns a VersionOne Services instance.
+	@return A VersionOne Services instance.
 	*/
 	public Services services(){
 		return this.services;
@@ -78,6 +81,7 @@ public class V1Services{
 	
 	/**
 	Returns a String view of the access token which authenticates this application with VersionOne.
+	@param certFile The location of the file containing the encrypted access token.
 	@return the access token which authenticates this application with VersionOne.
 	*/
 	private static String getAccessToken(String certFile){
