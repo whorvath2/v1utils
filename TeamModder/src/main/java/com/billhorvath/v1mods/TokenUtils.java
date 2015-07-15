@@ -8,23 +8,32 @@ import java.net.*;
 */
 public class TokenUtils{
 
-	protected final static String CERT_FILE_LOC = "./cert";
+	protected final static String CERT_FILE_LOC = "./enc_token";
 	
-	/**/
+	/*
+	Creates a file containing the platform-independent, encrypted form of the access token submitted as the first argument.
+	
+	*/
 	public static void main(String[] args){
 		if (args == null || args.length == 0){
-			System.out.println("You must initialize this program with the token for which "
-				+ "you wish to create a certificate.\nUsage: java -cp . com.billhorvath.v1mods.TokenUtils [token]");
+			System.out.println("You must initialize this program with the "
+				+ "token for which you wish to create a certificate."
+				+ "\nUsage: java -cp . com.billhorvath.v1mods.TokenUtils "
+				+ "[token]\n\tor java -jar [jarname].jar " 
+				+ "com.billhorvath.v1mods.TokenUtils [token]");
 			System.exit(1);			
 		}
 		else{
-			createCertFile(args[0]);
+			createEncFile(args[0]);
 			System.exit(0);
 		}
 	}
 	
-	/**/
-	private static void createCertFile(String token){
+	/*
+	Encrypts token and stores it in CERT_FILE_LOC.
+	@param token The plain-text token to be encrypted.
+	*/
+	private static void createEncFile(String token){
 	
 		if (setAccessToken(token, CERT_FILE_LOC)){
 			System.out.println("Token created at " + CERT_FILE_LOC + "\nExiting...");
@@ -35,10 +44,12 @@ public class TokenUtils{
 		}
 	}
 	/*
-	
+	Encrypts token and stores it in certFile.
+	@param token The plain-text token to be encrypted.
+	@param certFile The location of the file to which the encrypted token will
+		be written.	
 	*/
 	public static boolean setAccessToken(String token, String certFile){
-	
 		File file = new File(certFile);
 		if (file.exists()){
 			if (!(file.delete())){
@@ -62,16 +73,34 @@ public class TokenUtils{
 		}
 		
 		boolean result = false;
-		String encryptedToken = EncryptionUtils.encrypt(token);
+		byte[] encryptedBytes = EncryptionUtils.encrypt(token).getBytes();
+		System.out.println("encryptedBytes = " + new String(encryptedBytes));
+		System.out.println("\tencryptedBytes.length = " + encryptedBytes.length);
+
+		OutputStream writer = null;
 		try{
-			BufferedWriter writer = new BufferedWriter(new FileWriter(new File(certFile)));
-			writer.write(encryptedToken, 0, encryptedToken.length() - 1);
+			writer = new BufferedOutputStream(new FileOutputStream(file));
+			writer.write(encryptedBytes, 0, encryptedBytes.length);
 			result = true;
 		}
 		catch(Exception e){
 			e.printStackTrace();
 			assert false;
 		}
+		finally{
+			if (writer != null){
+				try{
+					writer.flush();
+					writer.close();
+				}
+				catch(Exception e){
+					e.printStackTrace();
+					assert false;
+				}
+			}
+			writer = null;
+		}
+		assert file.length() == encryptedBytes.length;
 		return result;
 	}
 }

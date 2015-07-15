@@ -9,7 +9,8 @@ import com.versionone.apiclient.interfaces.*;
 
 
 /**
- * The purpose of this class is to allow modification of VersionOne teams by way of the API.
+	The purpose of this class is to allow modification of the membership of 
+	VersionOne teams.
 */
 
 public class TeamModder{
@@ -20,7 +21,8 @@ public class TeamModder{
 		V1Services v1 = V1Services.getInstance(TokenUtils.CERT_FILE_LOC);
 		if (v1 == null){
 			assert false;
-			System.out.println("ERROR: Unable to initialize VersionOne services.");
+			System.out.println(
+				"ERROR: Unable to initialize VersionOne services.");
 			System.exit(1);
 		}
 		this.services = v1.services();
@@ -31,9 +33,9 @@ public class TeamModder{
 	*/
 	public static void main(String[] arguments){
 		TeamModder modder = getInstance();
-		boolean result = modder.addToTeam("10326", "Test Team");
-		
-		System.out.println("result = " + result);
+// 		boolean result = modder.addToTeam("10326", "Test Team");
+		Asset team = modder.findTeam("Silver Bullet");
+		System.out.println("Team = " + team);
 		
 	}
 	
@@ -46,14 +48,51 @@ public class TeamModder{
 	}
 	
 
+	/*
+	Finds the VersionOne Asset representing the team identified by teamName.
+	@param teamName The name of the team to be retrieved.
+	@return A VersionOne Asset representing the team.
+	*/
+	private Asset findTeam(String teamName){
+	
+		assert teamName != null;
+		
+		Asset result = null;
+		IAssetType assetType = services.getMeta().getAssetType("Team");
+		Query query = new Query(assetType);
+		IAttributeDefinition nameAttr = 
+			assetType.getAttributeDefinition("Name");
+		query.getSelection().add(nameAttr);
+		
+		try{
+			QueryResult queryResult = services.retrieve(query);
+			
+			for (Asset team: queryResult.getAssets()){
+				String str = team.getAttribute(nameAttr).getValue().toString();
+				assert str != null;
+				if (teamName.equals(str)){
+					result = team;
+					break;
+				}
+			}			
+		}
+		catch(Exception e){
+			assert false;
+			e.printStackTrace();
+		}
+		return result;
+		
+	}
 	
 	
 	/*
 	Adds the Member identified by memberOid to the team called teamName.
 	
-	@param memberOid The string representation of the Oid for the member to be added to the team.
+	@param memberOid The string representation of the Oid for the 
+		member to be added to the team.
 	@param teamName The name of the team to which the member is to be added.	
-	@return true if the member was successfully added to the team and the results were saved; false otherwise.
+	@return true if the member was successfully added to the team and the
+		results were saved; false otherwise.
 	*/
 	private boolean addToTeam(String memberOid, String teamName){
 	
@@ -94,13 +133,16 @@ public class TeamModder{
 	}
 	
 	/*
-	Returns a String representation of the members attached to this VersionOne installation.
-	@return A String representation of the members attached to this VersionOne installation.
+	Returns a String representation of the members attached to this
+		VersionOne installation.
+	@return A String representation of the members attached to this
+		VersionOne installation.
 	*/
 	public String memberList(){
 		IAssetType assetType = services.getMeta().getAssetType("Member");
 		Query query = new Query(assetType);
-		IAttributeDefinition nameAttr = assetType.getAttributeDefinition("Name");
+		IAttributeDefinition nameAttr = 
+			assetType.getAttributeDefinition("Name");
 		query.getSelection().add(nameAttr);
 		String result = "VersionOne Members:"; 
 		try{

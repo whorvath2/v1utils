@@ -7,9 +7,15 @@ import com.versionone.apiclient.*;
 import com.versionone.apiclient.services.*;
 import com.versionone.apiclient.interfaces.*;
 
+/*
+	This class serves to instantiate and return a connection to VersionOne in the form of a VersionOne Services instance.
+*/
 public class V1Services{
-
-	private static final String DEFAULT_CERT_LOC = "./cert";
+	/* The URL for the VersionOne installation from which the Services 
+		will be acquired. */
+	private static final String V1_LOC = 
+		"https://www8.v1host.com/ParishSOFTLLC/";
+	
 	
 	private static V1Services instance;
 
@@ -17,6 +23,7 @@ public class V1Services{
 
 
 	/*
+	Instantiates the VersionOne Services using the encrypted token located at certFile.
 	*/
 	private V1Services(String certFile){
 	
@@ -25,6 +32,9 @@ public class V1Services{
 	}
 	
 	/*
+	Returns a VersionOne V1Services object which can be used to access the
+		VersionOne API. Returns null if the file at certFile doesn't exist.
+	@return A V1Services instance connected to V1_LOC, or null if the file at certFile doesn't exist.
 	*/
 	public static V1Services getInstance(String certFile){
 		File file = new File(certFile);
@@ -47,7 +57,7 @@ public class V1Services{
 		V1Connector connector = null;
 		try{
 			connector = V1Connector
-				.withInstanceUrl("https://www8.v1host.com/ParishSOFTLLC/")
+				.withInstanceUrl(V1_LOC)
 				.withUserAgentHeader("TeamModder", "1.0")
 				.withAccessToken(getAccessToken(certFile))
 				.build();
@@ -73,18 +83,41 @@ public class V1Services{
 	private static String getAccessToken(String certFile){
 		String result = "";
 		File file = new File(certFile);
+		assert file.exists();
+		assert (!(file.length()>Integer.MAX_VALUE));
+		int fileLength = (int)file.length();
+		
+		char[] buffer = new char[fileLength];
+		assert buffer.length > 0;
+		String str = "";
+		
+		FileReader in = null;
 		try{
-			BufferedReader reader = new BufferedReader(new FileReader(file));
-			result = new String(reader.readLine().getBytes(), EncryptionUtils.ENCODING);
+			in = new FileReader(file);
+			in.read(buffer, 0, fileLength);
+			in.close();
+			str = new String(buffer);
 		}
 		catch (Exception e){
 			e.printStackTrace();
 			assert false;
 		}
+		finally{
+			if (in != null){
+				try{
+					in.close();
+				}
+				catch(Exception e){
+					e.printStackTrace();
+					assert false;
+				}
+			}
+		}
+		
+		result = String.valueOf(EncryptionUtils.decrypt(str));
 		assert result != null;
 		assert result.isEmpty() == false;
-		
-		result = EncryptionUtils.decrypt(result);
+
 		return result;
 	}
 }
