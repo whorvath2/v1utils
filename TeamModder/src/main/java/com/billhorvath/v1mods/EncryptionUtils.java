@@ -7,7 +7,7 @@ import java.util.*;
 import java.security.*;
 import org.bouncycastle.jce.provider.*;
 
-/*	
+/**	
 	This is a utility class for encrypting and decrypting String values using a secret key located at KEY_LOCATION.
 */
 public class EncryptionUtils{
@@ -20,12 +20,12 @@ public class EncryptionUtils{
 	private static final String KEY_LOCATION			= "./key";
 	private static final Provider PROVIDER = new BouncyCastleProvider();
 	
-	/*
+	/**
 	This class is composed entirely of static utility methods, and cannot be instantiated.
 	*/
 	private EncryptionUtils(){}
 	
-	/*
+	/**
 	Accept a String argument, encrypts it according to HASH_ALGORITHM, and returns the resulting encrypted String.
 
 	@param encryptMe The String to be encrypted.
@@ -48,7 +48,7 @@ public class EncryptionUtils{
         return result;
 	}
 	
-	/*
+	/**
 	Encodes an array of bytes in hex format and returns it as a String, so that it can be written out in platform-independent fashion.
 	@param outBytes The byte array to be converted to hex format.
 	@return A String composed of characters that are the hex-format equivalent of the bytes in the outBytes parameter.
@@ -61,7 +61,7 @@ public class EncryptionUtils{
 		}
         return builder.toString();
 	}
-	/*
+	/**
 	Decrypts an encrypted String argument that is composed of characters representing hex-formatted bytes. This method first converts the String from a hex-based format to an array of bytes, decrypts the string using a Cipher, then returns the decrypted value as a character array.
 	@param hex A String composed of characters in hex format representing bytes.
 	@return An array of characters representing the decrypted value of hex.
@@ -89,7 +89,7 @@ public class EncryptionUtils{
 		}
         return result;
 	}
-	/*
+	/**
 	Converts a String composed of characters which represent bytes encoded as hexadecimal numbers into an array of bytes.
 	@param hex The String composed of a sequence of characters which represent hexadecimal numbers.
 	@return An array of byte values which correspond to the hexadecimal values represented by the characters in hex.
@@ -101,7 +101,7 @@ public class EncryptionUtils{
 		}
 		return binary;
 	}
-	/*
+	/**
 	Reads a secret String from KEY_LOCATION and creates a cipher using that key which can be used to encrypt or decrypt data. DO NOT include the file at KEY_LOCATION in your source code commits, or you will compromise the security of your data.
 	@param mode The mode of the Cipher; must be either Cipher.ENCRYPT or Cipher.DECRYPT.
 	@return A Cipher which can be used to encrypt or decrypt data using the secret String found at KEY_LOCATION.
@@ -129,7 +129,7 @@ public class EncryptionUtils{
 		}
     	return cipher;
     }
-    /*
+    /**
 	Creates a Key using the provided String parameter.
 	@param secret The secret String used as the seed for the Key.
 	@return A Key which can be used in a Cipher.

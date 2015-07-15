@@ -7,7 +7,7 @@ import com.versionone.apiclient.*;
 import com.versionone.apiclient.services.*;
 import com.versionone.apiclient.interfaces.*;
 
-/*
+/**
 	This class serves to instantiate and return a connection to VersionOne in the form of a VersionOne Services instance.
 */
 public class V1Services{
@@ -22,7 +22,7 @@ public class V1Services{
 	private Services services;
 
 
-	/*
+	/**
 	Instantiates the VersionOne Services using the encrypted token located at certFile.
 	*/
 	private V1Services(String certFile){
@@ -31,7 +31,7 @@ public class V1Services{
 		
 	}
 	
-	/*
+	/**
 	Returns a VersionOne V1Services object which can be used to access the
 		VersionOne API. Returns null if the file at certFile doesn't exist.
 	@return A V1Services instance connected to V1_LOC, or null if the file at certFile doesn't exist.
@@ -51,7 +51,7 @@ public class V1Services{
 		return instance;
 		
 	}
-	/*
+	/**
 	*/
 	private void setServices(String certFile){
 		V1Connector connector = null;
@@ -70,13 +70,13 @@ public class V1Services{
 		this.services = new Services(connector);
 	}
 
-	/*
+	/**
 	*/
 	public Services services(){
 		return this.services;
 	}
 	
-	/*
+	/**
 	Returns a String view of the access token which authenticates this application with VersionOne.
 	@return the access token which authenticates this application with VersionOne.
 	*/

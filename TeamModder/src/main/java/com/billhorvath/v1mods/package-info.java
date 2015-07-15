@@ -1,4 +1,4 @@
-/*
+/**
 v1mods is a collection of utilities and objects designed for use with the VersionOne API.
 
 <h2>Usage Notes</h2>

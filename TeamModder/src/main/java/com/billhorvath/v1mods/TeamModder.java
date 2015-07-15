@@ -29,7 +29,7 @@ public class TeamModder{
 		
 	}
 	
-	/*
+	/**
 	*/
 	public static void main(String[] arguments){
 		TeamModder modder = getInstance();
@@ -39,7 +39,7 @@ public class TeamModder{
 		
 	}
 	
-	/*
+	/**
 	Returns an instance of TeamModder.
 	@return A default TeamModder instance.
 	*/
@@ -48,7 +48,7 @@ public class TeamModder{
 	}
 	
 
-	/*
+	/**
 	Finds the VersionOne Asset representing the team identified by teamName.
 	@param teamName The name of the team to be retrieved.
 	@return A VersionOne Asset representing the team.
@@ -85,7 +85,7 @@ public class TeamModder{
 	}
 	
 	
-	/*
+	/**
 	Adds the Member identified by memberOid to the team called teamName.
 	
 	@param memberOid The string representation of the Oid for the 
@@ -132,7 +132,7 @@ public class TeamModder{
 		
 	}
 	
-	/*
+	/**
 	Returns a String representation of the members attached to this
 		VersionOne installation.
 	@return A String representation of the members attached to this
@@ -160,7 +160,7 @@ public class TeamModder{
 		return result;
 	}
 	
-	/*
+	/**
 	Returns a human-readable form of the fields in this TeamModder.
 	@return A human-readable form of the fields in this TeamModder.
 	*/

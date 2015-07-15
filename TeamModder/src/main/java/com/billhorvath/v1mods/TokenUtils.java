@@ -3,14 +3,14 @@ package com.billhorvath.v1mods;
 import java.io.*;
 import java.net.*;
 
-/*
+/**
 	This class provides a means of setting a new token for accessing the VersionOne API from other classes in this package.
 */
 public class TokenUtils{
 
 	protected final static String CERT_FILE_LOC = "./enc_token";
 	
-	/*
+	/**
 	Creates a file containing the platform-independent, encrypted form of the access token submitted as the first argument.
 	
 	*/
@@ -29,7 +29,7 @@ public class TokenUtils{
 		}
 	}
 	
-	/*
+	/**
 	Encrypts token and stores it in CERT_FILE_LOC.
 	@param token The plain-text token to be encrypted.
 	*/
@@ -43,7 +43,7 @@ public class TokenUtils{
 			System.exit(1);
 		}
 	}
-	/*
+	/**
 	Encrypts token and stores it in certFile.
 	@param token The plain-text token to be encrypted.
 	@param certFile The location of the file to which the encrypted token will
