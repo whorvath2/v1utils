@@ -41,11 +41,13 @@ public class EncryptionUtils{
 	public static String encrypt(String encryptMe){
 
 		Cipher cipher = buildCipher(Cipher.ENCRYPT_MODE);
-		int outSize = cipher.getOutputSize(encryptMe.length());
+		int encLength = encryptMe.length();
+		int outSize = cipher.getOutputSize(encLength);
+
 		byte[] outBytes = new byte[outSize];
 		try {
-			int written = cipher.doFinal(encryptMe.getBytes(), 0, encryptMe.length(), 
-				outBytes);
+			int written = cipher.doFinal(encryptMe.getBytes(), 0,
+				encLength, outBytes);
         }
         catch(Exception e){
         	e.printStackTrace();
@@ -94,7 +96,12 @@ public class EncryptionUtils{
         }
 		try{
 			String str = new String(decryptedBytes, ENCODING);
-			result = str.toCharArray();
+			char[] chars = str.toCharArray();
+			StringBuilder builder = new StringBuilder();
+			for (int i = 0; i < chars.length; i++){
+				if (chars[i] != 0) builder.append(chars[i]);
+			}	
+			result = builder.toString().toCharArray();
 		}
 		catch (Exception e){
 			e.printStackTrace();

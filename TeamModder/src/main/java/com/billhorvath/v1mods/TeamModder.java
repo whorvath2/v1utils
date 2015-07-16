@@ -15,18 +15,11 @@ import com.versionone.apiclient.interfaces.*;
 
 public class TeamModder{
 
-	private final Services services;
 
+	private final IServices services;
+	
 	private TeamModder(){
-		V1Services v1 = V1Services.getInstance(TokenUtils.CERT_FILE_LOC);
-		if (v1 == null){
-			assert false;
-			System.out.println(
-				"ERROR: Unable to initialize VersionOne services.");
-			System.exit(1);
-		}
-		this.services = v1.services();
-		
+		this.services = V1Services.getInstance().services();		
 	}
 	
 	/**
@@ -37,8 +30,9 @@ public class TeamModder{
 		TeamModder modder = getInstance();
 // 		boolean result = modder.addToTeam("10326", "Test Team");
 		Asset team = modder.findTeam("Silver Bullet");
+// 		Asset member = modder.findMember("Bill Horvath");
 		System.out.println("Team = " + team);
-		
+// 		System.out.println("Member = " + member);	
 	}
 	
 	/**
@@ -49,6 +43,35 @@ public class TeamModder{
 		return new TeamModder();
 	}
 	
+	/**
+	*/
+	private Asset findMember(String name){
+
+		Asset result = null;
+		IAssetType assetType = services.getMeta().getAssetType("Member");
+		Query query = new Query(assetType);
+		IAttributeDefinition nameAttr = 
+			assetType.getAttributeDefinition("Name");
+		query.getSelection().add(nameAttr);
+		
+		try{
+			QueryResult queryResult = services.retrieve(query);
+			
+			for (Asset member: queryResult.getAssets()){
+				String str = member.getAttribute(nameAttr).getValue().toString();
+				assert str != null;
+				if (name.equals(str)){
+					result = member;
+					break;
+				}
+			}			
+		}
+		catch(Exception e){
+			assert false;
+			e.printStackTrace();
+		}
+		return result;
+	}
 
 	/**
 	Finds the VersionOne Asset representing the team identified by teamName.

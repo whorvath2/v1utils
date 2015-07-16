@@ -8,7 +8,7 @@ import java.net.*;
 */
 public class TokenUtils{
 
-	protected final static String CERT_FILE_LOC = "./enc_token";
+	protected final static String TOKEN_FILE_LOC = "./enc_token";
 	
 	/**
 	Creates a file containing the platform-independent, encrypted form of the access token submitted as the first argument. <b>If no arguments are submitted, this class will exit with an error message.</b>
@@ -30,13 +30,13 @@ public class TokenUtils{
 	}
 	
 	/**
-	Encrypts <code>token</code> and stores it in <code>CERT_FILE_LOC</code>.
+	Encrypts <code>token</code> and stores it in <code>TOKEN_FILE_LOC</code>.
 	@param token The plain-text token to be encrypted.
 	*/
 	private static void createEncFile(String token){
 	
-		if (setAccessToken(token, CERT_FILE_LOC)){
-			System.out.println("Token created at " + CERT_FILE_LOC + "\nExiting...");
+		if (setAccessToken(token, TOKEN_FILE_LOC)){
+			System.out.println("Token created at " + TOKEN_FILE_LOC + "\nExiting...");
 		}
 		else{
 			System.out.println("Token creation failure!");
@@ -46,12 +46,13 @@ public class TokenUtils{
 	/**
 	Encrypts <code>token</code> and stores it in <code>certFile</code>.
 	@param token The plain-text token to be encrypted.
-	@param certFile The location of the file to which the encrypted token will
+	@param tokenFile The location of the file to which the encrypted token will
 		be written.	
 	@return True if token was successfully written out to certFile; false otherwise.
 	*/
-	public static boolean setAccessToken(String token, String certFile){
-		File file = new File(certFile);
+	protected static boolean setAccessToken(String token, String tokenFile){
+
+		File file = new File(tokenFile);
 		if (file.exists()){
 			if (!(file.delete())){
 				System.out.println("Unable to delete " + file);
@@ -75,8 +76,6 @@ public class TokenUtils{
 		
 		boolean result = false;
 		byte[] encryptedBytes = EncryptionUtils.encrypt(token).getBytes();
-		System.out.println("encryptedBytes = " + new String(encryptedBytes));
-		System.out.println("\tencryptedBytes.length = " + encryptedBytes.length);
 
 		OutputStream writer = null;
 		try{
@@ -102,6 +101,65 @@ public class TokenUtils{
 			writer = null;
 		}
 		assert file.length() == encryptedBytes.length;
+		return result;
+	}
+	/**
+	Returns a String view of the decrypted access token stored at TOKEN_FILE_LOC which authenticates an application with VersionOne.
+	@return the access token which authenticates this application with VersionOne.
+	*/
+	protected static String getAccessToken(){
+		return getAccessToken(TOKEN_FILE_LOC);
+	}
+	/**
+	Returns a String view of the decrypted access token which authenticates an application with VersionOne.
+	@param tokenFileLoc The location of the file containing the encrypted access token.
+	@return the access token which authenticates this application with VersionOne.
+	*/
+	protected static String getAccessToken(String tokenFileLoc){
+		File tokenFile = new File(tokenFileLoc);
+		if (tokenFile == null 
+			|| (!(tokenFile.exists())) 
+			|| (!(tokenFile.length() > 0))
+			|| (tokenFile.length() > Integer.MAX_VALUE)){
+			assert false;
+			throw new IllegalStateException("The file containing the token at " 
+				+ tokenFileLoc 
+				+ " is missing, has no content, or is too large!");
+		}
+		String result = "";
+		int fileLength = (int)tokenFile.length();
+		
+		char[] buffer = new char[fileLength];
+		assert buffer.length > 0;
+		String str = "";
+		
+		FileReader in = null;
+		try{
+			in = new FileReader(tokenFile);
+			in.read(buffer, 0, fileLength);
+			in.close();
+			str = new String(buffer);
+		}
+		catch (Exception e){
+			e.printStackTrace();
+			assert false;
+		}
+		finally{
+			if (in != null){
+				try{
+					in.close();
+				}
+				catch(Exception e){
+					e.printStackTrace();
+					assert false;
+				}
+			}
+		}
+		
+		result = String.valueOf(EncryptionUtils.decrypt(str));
+		assert result != null;
+		assert result.isEmpty() == false;
+
 		return result;
 	}
 }
