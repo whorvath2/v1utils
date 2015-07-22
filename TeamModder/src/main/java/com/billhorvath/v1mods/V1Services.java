@@ -78,7 +78,16 @@ public class V1Services{
 	@return A V1Services instance connected to V1_LOC, or null if the file at certFile doesn't exist.
 	*/
 	public static V1Services getInstance(String tokenFileLoc){
-		instance = new V1Services(tokenFileLoc);
+		if (instance == null){
+			instance = new V1Services(tokenFileLoc);
+		}
+		else{
+			if (!(new File(tokenFileLoc).equals(instance.tokenFile))){
+				assert false;
+				throw new IllegalStateException("Changing the token file location is not currently supported.");
+			}
+			
+		}
 		return instance;
 	}
 

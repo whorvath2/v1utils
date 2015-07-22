@@ -12,8 +12,8 @@ import com.versionone.apiclient.interfaces.*;
 
 class V1Utils{
 	
-	private static final IServices SERVICES =
-		V1Services.getInstance().services();
+// 	private static final IServices SERVICES =
+// 		V1Services.getInstance().services();
 	/**
 	*/
 	
@@ -23,18 +23,19 @@ class V1Utils{
 	*/
 	static List<Asset> findAssets(String assetTypeStr, String...attributeNames){
 
+		IServices services = V1Services.getInstance().services();
 		List<Asset> result = null;
 		
-		IAssetType assetType = SERVICES.getMeta().getAssetType(assetTypeStr);
+		IAssetType assetType = services.getMeta().getAssetType(assetTypeStr);
 		Query query = new Query(assetType);
-		
+
 		for (String attributeName: attributeNames){
 			IAttributeDefinition attribute = 
 				assetType.getAttributeDefinition(attributeName);
 			query.getSelection().add(attribute);
 		}
 		try{
-			QueryResult queryResult = SERVICES.retrieve(query);
+			QueryResult queryResult = services.retrieve(query);
 			result = Arrays.asList(queryResult.getAssets());
 		}
 		catch(Exception e){
@@ -42,6 +43,17 @@ class V1Utils{
 			assert false;
 		}
 		return result;
+	}
+	/**
+	*/
+	static IAttributeDefinition getAttribute(String assetTypeStr, 
+		String attrName){
+
+			IServices services = V1Services.getInstance().services();
+			IAttributeDefinition attributeDef =
+				services.getMeta().getAssetType(assetTypeStr)
+					.getAttributeDefinition(attrName);
+			return attributeDef;
 	}
 }
 

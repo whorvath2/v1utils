@@ -50,38 +50,43 @@ public class EstimatesRounder{
 	Iterates through the assets of type assetTypeStr, and checks if they have a DetailEstimate attribute. If so, the value of the DetailEstimate is acquired, and checked to see if it is a non-integer. If so, it is rounded up to the next highest integer (regardless of the fractional value) and set as the value of the DetailEstimate attribute. All of the changed assets are then written back out to the database.
 	*/
 	private void round(String assetTypeStr){
-		Asset result = null;
-		IAssetType assetType = services.getMeta().getAssetType(assetTypeStr);
-		Query query = new Query(assetType);
-		IAttributeDefinition estAttr = 
-			assetType.getAttributeDefinition("DetailEstimate");
-		query.getSelection().add(estAttr);
+// 		IAssetType assetType = services.getMeta().getAssetType(assetTypeStr);
+// 		Query query = new Query(assetType);
+// 		IAttributeDefinition estAttr = 
+// 			assetType.getAttributeDefinition("DetailEstimate");
+// 		query.getSelection().add(estAttr);
+
+		String attributeName = "DetailEstimate";
+		List<Asset> matches = V1Utils.findAssets(assetTypeStr,
+			attributeName);
 		
 		try{
-			QueryResult queryResult = services.retrieve(query);
-			
+// 			QueryResult queryResult = services.retrieve(query);
+// 			IAttributeDefinition estAttr =
+// 				services.getMeta().getAssetType(assetTypeStr)
+// 					.getAttributeDefinition(attributeName);
+			IAttributeDefinition estAttr = V1Utils.getAttribute(assetTypeStr, attributeName);
+
 			List<Asset> assetsToChange = new ArrayList<Asset>();
 			
-			for (Asset task: queryResult.getAssets()){
-
-				Attribute attribute = task.getAttribute(estAttr);
+// 			for (Asset match: queryResult.getAssets()){
+			for (Asset match: matches){
+				Attribute attribute = match.getAttribute(estAttr);
 				if (attribute == null) continue;
 				Object value = attribute.getValue();
 				if (value == null) continue;
-				
 				String str = value.toString();
-				
 				assert str != null;
 				if (str != null){
-
 					try{
 						double d = Double.parseDouble(str);
 						if ((d % 1) > 0){
-							System.out.print("Estimate = " + str);
+// 							System.out.print("Oid = " + match.getOid() + "\tEstimate = " + str);
 							d = Math.ceil(d);
-							System.out.println("\tRounded = " + d);
-							task.setAttributeValue(estAttr, String.valueOf(d));
-							assetsToChange.add(task);
+// 							System.out.println("\tRounded = " 
+// 								+ String.valueOf(d));
+							match.setAttributeValue(estAttr, String.valueOf(d));
+							assetsToChange.add(match);
 						}
 					}
 					catch(NumberFormatException e){
@@ -92,9 +97,6 @@ public class EstimatesRounder{
 				}
 			}
 			Asset[] newAssets = assetsToChange.toArray(new Asset[0]);
-			for (int i = 0; i < newAssets.length; i++){
-				System.out.println("newAssets[" + i + "] = " + newAssets[i]);
-			}
 // 			services.save(newAssets);			
 		}
 		catch(Exception e){
