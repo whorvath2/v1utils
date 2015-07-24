@@ -5,25 +5,31 @@ import javax.crypto.spec.*;
 import java.io.*;
 import java.util.*;
 import java.security.*;
+import java.nio.file.*;
 import org.bouncycastle.jce.provider.*;
 
 /**	
 	This is a utility class for encrypting and decrypting String values using a secret key located at KEY_LOCATION.
 */
 public class EncryptionUtils{
+
 	/** How we'll encode Strings. */
-	public static final String ENCODING 				= "UTF-8";
+	private static final String ENCODING 				= "UTF-8";
 	/** The Cipher algorithm we'll use for encryption/decryption. */
-	public static final String CIPHER_ALGORITHM 		= "AES"; 
+	private static final String CIPHER_ALGORITHM 		= "AES"; 
 	/** The Key algorithm we'll use for encryption/decryption. */
-	public static final String KEY_ALGORITHM 			= "AES"; 
+	private static final String KEY_ALGORITHM 			= "AES"; 
 	/** The Hash algorithm we'll use for encryption/decryption. */
-	public static final String HASH_ALGORITHM 			= "SHA-256";
+	private static final String HASH_ALGORITHM 			= "SHA-256";
+	/** The Random Number Generator algorithm used for generating the salt. */
+	private static final String SALT_ALGORITHM			= "SHA1PRNG";
 	/** The location of the file in which the key is stored. */
-	private static final String KEY_LOCATION			= "./key";
+	private static final String KEY_LOCATION			= "/master";
+	/** The location of the file in which the salt for the hash is stored. */
+	private static final String SALT_LOCATION			= "/mortons";
 	/** The encryption provider we're using. */
 	private static final Provider PROVIDER = new BouncyCastleProvider();
-	
+
 	/**
 	This class is composed entirely of static utility methods, and 
 		cannot be instantiated.
@@ -125,10 +131,9 @@ public class EncryptionUtils{
 		return binary;
 	}
 	/**
-	Reads a secret String from KEY_LOCATION and creates a cipher using that
-		key which can be used to encrypt or decrypt data. DO NOT include the
-		file at KEY_LOCATION in your source code commits, or you will compromise
-		the security of your data.
+	Reads secret Strings from KEY_LOCATION and SALT_LOCATION and creates a cipher using that data which can be used to encrypt or decrypt data. If the file at SALT_LOCATION cannot be found, it will create a salt and store it there; otherwise, it will read the salt from the file and use it to create the cipher's key.
+	
+	DO NOT include the file at KEY_LOCATION or SALT_LOCATION in your source code commits, or you will compromise the security of your data.
 	@param mode The mode of the Cipher; must be either Cipher.ENCRYPT or
 		Cipher.DECRYPT.
 	@return A Cipher which can be used to encrypt or decrypt data using the
@@ -140,14 +145,29 @@ public class EncryptionUtils{
 		BufferedReader reader = null;
     	try{
 			cipher = Cipher.getInstance(CIPHER_ALGORITHM, PROVIDER);
-			File file = new File(KEY_LOCATION);
-			assert file.exists();
-			assert (file.length() > 0);
-			reader = new BufferedReader(new FileReader(file));
+			InputStreamReader streamReader = new InputStreamReader(
+				EncryptionUtils.class.getResourceAsStream(KEY_LOCATION));
+			reader = new BufferedReader(streamReader);
 			String keyStr = reader.readLine();
 			assert keyStr != null;
 			assert (!(keyStr.isEmpty()));
-			Key key = buildKey(keyStr);
+			
+			byte[] saltBytes = new byte[0];
+			//If we're encrypting, let's create and store the salt....
+			if (mode == Cipher.ENCRYPT_MODE){
+				saltBytes = createSalt();
+			}
+			//Otherwise, lets see if the salt is there and use it if it is...
+			else{
+				streamReader = new InputStreamReader(
+					EncryptionUtils.class.getResourceAsStream(SALT_LOCATION));
+				reader = new BufferedReader(streamReader);
+				String saltStr = reader.readLine();
+				assert saltStr != null;
+				assert (!(saltStr.isEmpty()));
+				saltBytes = fromHex(saltStr);
+			}
+			Key key = buildKey(keyStr, saltBytes);
 			cipher.init(mode, key);
 		}
 		catch(Exception e){
@@ -162,13 +182,14 @@ public class EncryptionUtils{
 	@param secret The secret String used as the seed for the Key.
 	@return A Key which can be used in a Cipher.
     */
-    private static Key buildKey(String secret){
+    private static Key buildKey(String secret, byte[] salt){
 		SecretKeySpec keySpec = null;
     	try{
     		MessageDigest digester = MessageDigest.getInstance(
     			HASH_ALGORITHM, PROVIDER);
-    		digester.update(secret.getBytes());
-    		byte[] key = digester.digest();
+    		if (salt.length > 0) digester.update(salt);
+    		byte[] key = digester.digest(secret.getBytes());
+    		digester.reset();
     		keySpec = new SecretKeySpec(key, KEY_ALGORITHM);
     	}
     	catch(Exception e){
@@ -178,5 +199,43 @@ public class EncryptionUtils{
     	}
     	return keySpec;
     }
-    
+    /**
+    	Generates a salt to use when building the key.
+    	@return A byte array containing the salt value.
+    */
+    private static byte[] createSalt(){
+
+    	byte[] salt = new byte[16];
+
+		File file = new File("./src/main/resources" + SALT_LOCATION);
+		OutputStream writer = null;
+		try{
+			SecureRandom.getInstance(SALT_ALGORITHM).nextBytes(salt);
+			String saltStr = toHex(salt);
+			byte[] hexBytes = saltStr.getBytes();
+			writer = new BufferedOutputStream(new FileOutputStream(file));
+			writer.write(hexBytes, 0, hexBytes.length);
+		}
+		catch(Exception e){
+			e.printStackTrace();
+			assert false;
+			salt = new byte[0];
+		}
+		finally{
+			if (writer != null){
+				try{
+					writer.flush();
+					writer.close();
+				}
+				catch(Exception e){
+					e.printStackTrace();
+					assert false;
+					salt = new byte[0];
+				}
+			}
+			writer = null;
+		}
+// 		assert file.length() == salt.length;
+    	return salt;
+    }
 }

@@ -20,9 +20,6 @@ public class V1Services{
 	private static final String APPLICATION_NAME = "TeamModder";
 	/** The version of the application, sent as a header item to VersionOne. */
 	private static final String APPLICATION_VERSION = "1.1";
-
-	/** The file from which the authentication token is read. */
-	private final File tokenFile;
 	
 	/** The services which will be provided to the client class. */
 	private final IServices services;
@@ -32,18 +29,8 @@ public class V1Services{
 	/**
 	Instantiates the VersionOne Services using the encrypted token located at certFile.
 	*/
-	private V1Services(String tokenFileLoc){
-	
-		this.tokenFile = new File(tokenFileLoc);
-		if (this.tokenFile == null 
-			|| (!(this.tokenFile.exists())) 
-			|| (!(this.tokenFile.length() > 0))
-			|| (this.tokenFile.length() > Integer.MAX_VALUE)){
-			assert false;
-			throw new IllegalStateException("The file containing the token at " 
-				+ tokenFileLoc 
-				+ " is missing, has no content, or is too large!");
-		}
+	private V1Services(){
+
 		V1Connector connector = null;
 		try{
 			connector = V1Connector
@@ -68,25 +55,8 @@ public class V1Services{
 	@return A V1Services instance connected to V1_LOC, or null if the file at certFile doesn't exist.
 	*/
 	public static V1Services getInstance(){
-		return getInstance(TokenUtils.TOKEN_FILE_LOC);
-	}
-	
-	/**
-	Returns a VersionOne V1Services object which can be used to access the
-		VersionOne API. Looks for the access token at <code>tokenFileLoc</code>.
-	@param tokenFileLoc The location of the file containing the encrypted token.
-	@return A V1Services instance connected to V1_LOC, or null if the file at certFile doesn't exist.
-	*/
-	public static V1Services getInstance(String tokenFileLoc){
 		if (instance == null){
-			instance = new V1Services(tokenFileLoc);
-		}
-		else{
-			if (!(new File(tokenFileLoc).equals(instance.tokenFile))){
-				assert false;
-				throw new IllegalStateException("Changing the token file location is not currently supported.");
-			}
-			
+			instance = new V1Services();
 		}
 		return instance;
 	}
@@ -106,39 +76,24 @@ public class V1Services{
 	*/
 	private String getAccessToken(){
 		String result = "";
-		int fileLength = (int)tokenFile.length();
+		BufferedReader reader = null;
+    	try{
+			InputStreamReader streamReader = new InputStreamReader(
+				V1Services.class.getResourceAsStream(
+					TokenUtils.TOKEN_FILE_LOC));
+			reader = new BufferedReader(streamReader);
+			String str = reader.readLine();
+			assert str != null;
+			assert (!(str.isEmpty()));
 		
-		char[] buffer = new char[fileLength];
-		assert buffer.length > 0;
-		String str = "";
-		
-		FileReader in = null;
-		try{
-			in = new FileReader(tokenFile);
-			in.read(buffer, 0, fileLength);
-			in.close();
-			str = new String(buffer);
+			result = String.valueOf(EncryptionUtils.decrypt(str));
+			assert result != null;
+			assert result.isEmpty() == false;
 		}
-		catch (Exception e){
+		catch(Exception e){
 			e.printStackTrace();
 			assert false;
 		}
-		finally{
-			if (in != null){
-				try{
-					in.close();
-				}
-				catch(Exception e){
-					e.printStackTrace();
-					assert false;
-				}
-			}
-		}
-		
-		result = String.valueOf(EncryptionUtils.decrypt(str));
-		assert result != null;
-		assert result.isEmpty() == false;
-
 		return result;
 	}
 }

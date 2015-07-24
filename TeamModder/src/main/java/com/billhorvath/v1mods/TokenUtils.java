@@ -2,13 +2,14 @@ package com.billhorvath.v1mods;
 
 import java.io.*;
 import java.net.*;
+import java.nio.file.*;
 
 /**
 	This class provides a means of setting a new token for accessing the VersionOne API from other classes in this package.
 */
 public class TokenUtils{
 
-	protected final static String TOKEN_FILE_LOC = "./enc_token";
+	protected final static String TOKEN_FILE_LOC = "/coin";
 	
 	/**
 	Creates a file containing the platform-independent, encrypted form of the access token submitted as the first argument. <b>If no arguments are submitted, this class will exit with an error message.</b>
@@ -52,29 +53,10 @@ public class TokenUtils{
 	*/
 	protected static boolean setAccessToken(String token, String tokenFile){
 
-		File file = new File(tokenFile);
-		if (file.exists()){
-			if (!(file.delete())){
-				System.out.println("Unable to delete " + file);
-				assert false;
-				return false;
-			}
-		}
-		try{
-			if (!(file.createNewFile())){
-				System.out.println("Unable to create" + file);
-				assert false;
-				return false;
-			}
-		}
-		catch(Exception e){
-			System.out.println("Unable to create" + file);
-			e.printStackTrace();
-			assert false;
-			return false;
-		}
-		
 		boolean result = false;
+		File file = new File(tokenFile);
+		if (!(resetFile(file))) return result;
+		
 		byte[] encryptedBytes = EncryptionUtils.encrypt(token).getBytes();
 
 		OutputStream writer = null;
@@ -116,50 +98,92 @@ public class TokenUtils{
 	@return the access token which authenticates this application with VersionOne.
 	*/
 	protected static String getAccessToken(String tokenFileLoc){
-		File tokenFile = new File(tokenFileLoc);
-		if (tokenFile == null 
-			|| (!(tokenFile.exists())) 
-			|| (!(tokenFile.length() > 0))
-			|| (tokenFile.length() > Integer.MAX_VALUE)){
-			assert false;
-			throw new IllegalStateException("The file containing the token at " 
-				+ tokenFileLoc 
-				+ " is missing, has no content, or is too large!");
-		}
+		
+	
+// 		File tokenFile = new File(tokenFileLoc);
+// 		if (tokenFile == null 
+// 			|| (!(tokenFile.exists())) 
+// 			|| (!(tokenFile.length() > 0))
+// 			|| (tokenFile.length() > Integer.MAX_VALUE)){
+// 			assert false;
+// 			throw new IllegalStateException("The file containing the token at " 
+// 				+ tokenFileLoc 
+// 				+ " is missing, has no content, or is too large!");
+// 		}
 		String result = "";
-		int fileLength = (int)tokenFile.length();
-		
-		char[] buffer = new char[fileLength];
-		assert buffer.length > 0;
-		String str = "";
-		
-		FileReader in = null;
-		try{
-			in = new FileReader(tokenFile);
-			in.read(buffer, 0, fileLength);
-			in.close();
-			str = new String(buffer);
+// 		int fileLength = (int)tokenFile.length();
+// 		
+// 		char[] buffer = new char[fileLength];
+// 		assert buffer.length > 0;
+// 		String str = "";
+// 		
+// 		FileReader in = null;
+// 		try{
+// 			in = new FileReader(tokenFile);
+// 			in.read(buffer, 0, fileLength);
+// 			in.close();
+// 			str = new String(buffer);
+// 		}
+// 		catch (Exception e){
+// 			e.printStackTrace();
+// 			assert false;
+// 		}
+// 		finally{
+// 			if (in != null){
+// 				try{
+// 					in.close();
+// 				}
+// 				catch(Exception e){
+// 					e.printStackTrace();
+// 					assert false;
+// 				}
+// 			}
+// 		}
+		BufferedReader reader = null;
+    	try{
+			InputStreamReader streamReader = new InputStreamReader(
+				TokenUtils.class.getResourceAsStream(TOKEN_FILE_LOC));
+			reader = new BufferedReader(streamReader);
+			String str = reader.readLine();
+			assert str != null;
+			assert (!(str.isEmpty()));
+			result = String.valueOf(EncryptionUtils.decrypt(str));
 		}
-		catch (Exception e){
+		catch(Exception e){
 			e.printStackTrace();
 			assert false;
 		}
-		finally{
-			if (in != null){
-				try{
-					in.close();
-				}
-				catch(Exception e){
-					e.printStackTrace();
-					assert false;
-				}
-			}
-		}
-		
-		result = String.valueOf(EncryptionUtils.decrypt(str));
 		assert result != null;
 		assert result.isEmpty() == false;
 
+		return result;
+	}
+	/**
+	If file exists, overwrites file with a file that is zero bytes in length. Otherwise, creates a new file at the same location.
+	@param file The file that will be overwritten or created.
+	@return true if the entire operation completed successfully; false otherwise.
+	*/
+	private static boolean resetFile(File file){
+		boolean result = false;
+		if (file.exists()){
+			if (!(file.delete())){
+				System.out.println("Unable to delete " + file);
+				assert false;
+				return result;
+			}
+		}
+		try{
+			if (!(file.createNewFile())){
+				System.out.println("Unable to create" + file);
+				assert false;
+			}
+			else result = true;
+		}
+		catch(Exception e){
+			System.out.println("Unable to create" + file);
+			e.printStackTrace();
+			assert false;
+		}
 		return result;
 	}
 }
