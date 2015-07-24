@@ -1,13 +1,19 @@
 package com.billhorvath.v1mods;
 
 import java.util.*;
+import java.util.List;
+import java.awt.*;
+import java.io.*;
+import java.nio.file.*;
 import com.versionone.*;
 import com.versionone.apiclient.*;
 import com.versionone.apiclient.filters.*;
-// import com.versionone.apiclient.services.*;
 import com.versionone.apiclient.interfaces.*;
 
 /**
+<p>A class for pulling the Product Backlog from VersionOne and making it available in plain text.</p> 
+<p>As presently constructed, this class queries all open stories and defects in a particular project, sorts them according to Rank, and outputs a file containing the results.</p>
+<p>To-Do:</p><ul><li>Include Story Point Estimates in the output.</li><li>Mark the items being developed in the current Sprint.</li><li>Include items in the current Sprint that are closed.</li></ul>
 */
 public class BacklogPuller{
 
@@ -24,7 +30,7 @@ public class BacklogPuller{
 		STORY 		=	"Story",
 		DEFECT		=	"Defect",
 		NA 			= 	"(N/A)",
-		PROJECTID	= 	"Scope:91791";
+		PROJECTID	= 	"Scope:91791"; //4.3.4
 		
 // 	private static final Map<String, String> STORY_STATUSES = 
 // 		new HashMap<String, String>();
@@ -53,32 +59,76 @@ public class BacklogPuller{
 // 	}
 	
 	/**
+	Pulls the backlog and pushes it out to a file.
+	@param args These are ignored at the moment.
 	*/
 	public static void main(String[] args){
+
 		//for now, we're ignoring the parameters...
 		List<String> items = getInstance().pullBacklog();
-		System.out.println("Backlog Items...\n");
+		String output = "Backlog Items...\n";
 		for (String item: items){
-			System.out.println("\t" + item);
+			output += "\t" + item + "\n";
+		}
+		System.out.println(output);
+		File file = marshallOut(output);
+		if (file != null){
+			try{
+				Desktop.getDesktop().open(file);
+			}
+			catch(Exception e){
+				e.printStackTrace();
+				System.err.println("The backlog has been put here: " + file);
+				System.exit(1);
+			}
 		}
 		System.exit(0);	
 	}
 	
 	/**
+	Factory method for generating a BacklogPuller instance. Note that it currently returns a singleton.
+	@return a BacklogPuller instance.
 	*/
 	public static BacklogPuller getInstance(){
 		if (instance == null) instance = new BacklogPuller();
 		return instance;
 	}
-
+	
 	/**
+	Writes <code>output</code> as plain-text (UTF-8) to a file at [current working directory]/Backlog.txt.
+	@param output The string to be written out.
+	@return A file containing the output, or null if there was an error creating or writing to the file.
+	*/
+	private static File marshallOut(String output){
+		File result = null;
+		Path path = null;
+		try{
+			path = FileSystems.getDefault().getPath("Backlog.txt");
+			BufferedWriter writer = Files.newBufferedWriter(path);
+			writer.write(output);
+			writer.flush();
+			result = path.toFile();
+		}
+		catch(Exception e){
+			e.printStackTrace();
+			System.err.println(
+				"There was an error creating the backlog file at " + path);
+		}
+		return result;
+	}
+	
+	/**
+	@return A list of strings containing the names and ranks of the items in the backlog.
+	@see BacklogPuller#pullBacklog(BacklogType)
 	*/
 	public List<String> pullBacklog(){
 		return pullBacklog(BacklogType.PRODUCT);
 	}
 
 	/**
-		//TO-DO: Include Defects; only include items that are to-do or in process
+	Pulls the backlog of open PrimaryWorkItems (stories and defects) for the project designed by PROJECTID, and returns a list of Strings containing the names and ranks of the items in the backlog.
+	@param type The type of backlog the client wishes to retrieve (this is currently ignored.)
+	@return A list of strings containing the names and ranks of the items in the backlog.
 	*/
 	public List<String> pullBacklog(BacklogType type){
 
@@ -145,18 +195,14 @@ public class BacklogPuller{
 				: defectNameAttDef;
 			result.add(String.valueOf(++i) + ": " + attributeToString(asset, attDef));
 		}
-// 		for (Asset asset : assets){
-// 			String str = "";
-// 			for (String attStr : attStrs){
-// 				IAttributeDefinition attDef = V1Utils.getAttribute(STORY, attStr);
-// 				str += attributeToString(asset, attDef) + "\n\t";
-// 			}
-// 			result.add(str.trim());
-// 		}
 		return result;
 	}
 	
-	/**/
+	/**
+	Constructs an IFilterTerm that will limit a VersionOne Query to items that are still open, and which are associated with the project designated by PROJECTID.
+	@param assetType The name of the type of asset on which the filter will operate. Also see <a href="https://www8.v1host.com/ParishSOFTLLC/meta.v1?xsl=api.xsl">the VersionOne meta page.</a>
+	@return an IFilterTerm that will limit a VersionOne Query to items that are still open, and which are associated with the project designated by PROJECTID.
+	*/
 	private IFilterTerm buildFilter(String assetType){
 		IAttributeDefinition closedDef = V1Utils.getAttribute(assetType, ISCLOSED);
 		FilterTerm closedTerm = new FilterTerm(closedDef);
@@ -177,9 +223,9 @@ public class BacklogPuller{
 	}
 	
 	/**
-	Calculates a String to represent the name and value of the <code>def</code> attribute of <code>asset</code>.
+	Calculates a String to represent the value of the <code>def</code> attribute of <code>asset</code>.
 	@param asset The asset which will be examined for the attribute defined by def.
-	@
+	@return a String to represent the value of the <code>def</code> attribute of <code>asset</code>.
 	*/
 	private String attributeToString(Asset asset, IAttributeDefinition def){
 // 		String result = def.getName() + ": ";
