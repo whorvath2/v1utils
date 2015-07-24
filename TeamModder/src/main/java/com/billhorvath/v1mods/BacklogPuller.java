@@ -92,13 +92,11 @@ public class BacklogPuller{
 		groupTerm = buildFilter(DEFECT);
 		assets.addAll(V1Utils.findAssets(DEFECT, groupTerm, attStrs));
 
-		final IAttributeDefinition storyAttDef = 
+		final IAttributeDefinition storyOrderAttDef = 
 			V1Utils.getAttribute(STORY, ORDER);
-		System.out.println("storyAttDef = " + storyAttDef .getName());
 			
-		final IAttributeDefinition defectAttDef = 
+		final IAttributeDefinition defectOrderAttDef = 
 			V1Utils.getAttribute(DEFECT, ORDER);
-		System.out.println("defectAttDef = " + defectAttDef.getName());
 		
 		Collections.sort(assets, new Comparator<Asset>(){
 		
@@ -107,12 +105,16 @@ public class BacklogPuller{
 				try{
 					IAssetType storyType = V1Utils.assetType(STORY);
 					String appleStr = (apple.getAssetType().equals(storyType))
-						? (String)apple.getAttribute(storyAttDef).getValue()
-						: (String)apple.getAttribute(defectAttDef).getValue();
+						? (String)apple.getAttribute(
+							storyOrderAttDef).getValue()
+						: (String)apple.getAttribute(
+							defectOrderAttDef).getValue();
 				
 					String orangeStr =(orange.getAssetType().equals(storyType))
-						? (String)orange.getAttribute(storyAttDef).getValue()
-						: (String)orange.getAttribute(defectAttDef).getValue();
+						? (String)orange.getAttribute(
+							storyOrderAttDef).getValue()
+						: (String)orange.getAttribute(
+							defectOrderAttDef).getValue();
 					return -1 * (new Long(appleStr).compareTo(new Long(orangeStr)));
 				}
 				catch(Exception e){
@@ -125,12 +127,22 @@ public class BacklogPuller{
 				return this == obj;
 			}
 		});
-		
-		IAttributeDefinition attDef = V1Utils.getAttribute(STORY, NAME);
-		
+				
+
+		final IAttributeDefinition storyNameAttDef = 
+			V1Utils.getAttribute(STORY, NAME);
+			
+		final IAttributeDefinition defectNameAttDef = 
+			V1Utils.getAttribute(DEFECT, NAME);
+
+
 		List<String> result = new ArrayList<String>(assets.size());
 		int i = 0;
 		for (Asset asset : assets){
+			IAssetType storyType = V1Utils.assetType(STORY);
+			IAttributeDefinition attDef = (asset.getAssetType().equals(storyType))
+				? storyNameAttDef
+				: defectNameAttDef;
 			result.add(String.valueOf(++i) + ": " + attributeToString(asset, attDef));
 		}
 // 		for (Asset asset : assets){
