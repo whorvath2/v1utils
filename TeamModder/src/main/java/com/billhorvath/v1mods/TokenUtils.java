@@ -47,8 +47,6 @@ public class TokenUtils{
 	/**
 	Encrypts <code>token</code> and stores it in <code>certFile</code>.
 	@param token The plain-text token to be encrypted.
-	@param tokenFile The location of the file to which the encrypted token will
-		be written.	
 	@return True if token was successfully written out to certFile; false otherwise.
 	*/
 	protected static boolean setAccessToken(String token){
@@ -88,7 +86,6 @@ public class TokenUtils{
 	}
 	/**
 	Returns a String view of the decrypted access token which authenticates an application with VersionOne.
-	@param tokenFileLoc The location of the file containing the encrypted access token.
 	@return the access token which authenticates this application with VersionOne.
 	*/
 	protected static String getAccessToken(){

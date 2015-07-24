@@ -8,7 +8,7 @@ import com.versionone.apiclient.services.*;
 import com.versionone.apiclient.interfaces.*;
 
 /**
-	This class hasn't been written yet.
+	Iterates through the VersionOne database, looking for Tasks and Tests with partial-hour estimates. It rounds up any partial-hour estimates of n.x hours to n+1, and writes the results back out to the database. (Writing back out is not yet implemented!)
 */
 public class EstimatesRounder{
 	private final IServices services;
@@ -19,6 +19,7 @@ public class EstimatesRounder{
 		this.services = V1Services.getInstance().services();
 	}
 	/**
+	@param args This parameter is ignored for now.
 	*/
 	public static void main(String[] args){
 		Scanner scanner = new Scanner(System.in);
@@ -42,12 +43,15 @@ public class EstimatesRounder{
 		System.exit(0);
 	}
 	/**
+	Returns an EstimatesRounder instance.
+	@return An EstimatesRounder instance.
 	*/
 	public static EstimatesRounder getInstance(){
 		return new EstimatesRounder();
 	}
 	/**
 	Iterates through the assets of type assetTypeStr, and checks if they have a DetailEstimate attribute. If so, the value of the DetailEstimate is acquired, and checked to see if it is a non-integer. If so, it is rounded up to the next highest integer (regardless of the fractional value) and set as the value of the DetailEstimate attribute. All of the changed assets are then written back out to the database.
+	@param assetTypeStr The type of asset to be retrieved.
 	*/
 	private void round(String assetTypeStr){
 // 		IAssetType assetType = services.getMeta().getAssetType(assetTypeStr);
