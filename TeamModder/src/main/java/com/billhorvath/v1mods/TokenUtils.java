@@ -36,7 +36,7 @@ public class TokenUtils{
 	*/
 	private static void createEncFile(String token){
 	
-		if (setAccessToken(token, TOKEN_FILE_LOC)){
+		if (setAccessToken(token)){
 			System.out.println("Token created at " + TOKEN_FILE_LOC + "\nExiting...");
 		}
 		else{
@@ -51,10 +51,11 @@ public class TokenUtils{
 		be written.	
 	@return True if token was successfully written out to certFile; false otherwise.
 	*/
-	protected static boolean setAccessToken(String token, String tokenFile){
+	protected static boolean setAccessToken(String token){
 
 		boolean result = false;
-		File file = new File(tokenFile);
+		File file = new File("./src/main/resources" + TOKEN_FILE_LOC);
+
 		if (!(resetFile(file))) return result;
 		
 		byte[] encryptedBytes = EncryptionUtils.encrypt(token).getBytes();
@@ -86,59 +87,12 @@ public class TokenUtils{
 		return result;
 	}
 	/**
-	Returns a String view of the decrypted access token stored at TOKEN_FILE_LOC which authenticates an application with VersionOne.
-	@return the access token which authenticates this application with VersionOne.
-	*/
-	protected static String getAccessToken(){
-		return getAccessToken(TOKEN_FILE_LOC);
-	}
-	/**
 	Returns a String view of the decrypted access token which authenticates an application with VersionOne.
 	@param tokenFileLoc The location of the file containing the encrypted access token.
 	@return the access token which authenticates this application with VersionOne.
 	*/
-	protected static String getAccessToken(String tokenFileLoc){
-		
-	
-// 		File tokenFile = new File(tokenFileLoc);
-// 		if (tokenFile == null 
-// 			|| (!(tokenFile.exists())) 
-// 			|| (!(tokenFile.length() > 0))
-// 			|| (tokenFile.length() > Integer.MAX_VALUE)){
-// 			assert false;
-// 			throw new IllegalStateException("The file containing the token at " 
-// 				+ tokenFileLoc 
-// 				+ " is missing, has no content, or is too large!");
-// 		}
+	protected static String getAccessToken(){
 		String result = "";
-// 		int fileLength = (int)tokenFile.length();
-// 		
-// 		char[] buffer = new char[fileLength];
-// 		assert buffer.length > 0;
-// 		String str = "";
-// 		
-// 		FileReader in = null;
-// 		try{
-// 			in = new FileReader(tokenFile);
-// 			in.read(buffer, 0, fileLength);
-// 			in.close();
-// 			str = new String(buffer);
-// 		}
-// 		catch (Exception e){
-// 			e.printStackTrace();
-// 			assert false;
-// 		}
-// 		finally{
-// 			if (in != null){
-// 				try{
-// 					in.close();
-// 				}
-// 				catch(Exception e){
-// 					e.printStackTrace();
-// 					assert false;
-// 				}
-// 			}
-// 		}
 		BufferedReader reader = null;
     	try{
 			InputStreamReader streamReader = new InputStreamReader(
