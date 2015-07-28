@@ -180,6 +180,7 @@ public class EncryptionUtils{
     /**
 	Creates a Key using the provided String parameter.
 	@param secret The secret String used as the seed for the Key.
+	@param salt The bytes used to salt the hash.
 	@return A Key which can be used in a Cipher.
     */
     private static Key buildKey(String secret, byte[] salt){

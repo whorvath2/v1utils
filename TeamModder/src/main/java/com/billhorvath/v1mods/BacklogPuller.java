@@ -18,6 +18,7 @@ import com.versionone.apiclient.interfaces.*;
 public class BacklogPuller{
 
 	private static BacklogPuller instance;
+	
 	public enum BacklogType {
 		PRODUCT, CURRENT_SPRINT
 	}
@@ -204,6 +205,8 @@ public class BacklogPuller{
 	@return an IFilterTerm that will limit a VersionOne Query to items that are still open, and which are associated with the project designated by PROJECTID.
 	*/
 	private IFilterTerm buildFilter(String assetType){
+
+		IFilterTerm result = null;
 		IAttributeDefinition closedDef = V1Utils.getAttribute(assetType, ISCLOSED);
 		FilterTerm closedTerm = new FilterTerm(closedDef);
 		closedTerm.equal(Boolean.FALSE);
@@ -213,18 +216,19 @@ public class BacklogPuller{
 		try{
 			Oid oid = V1Services.getInstance().services().getOid(PROJECTID);
 			projectTerm.equal(oid);
+			result = new AndFilterTerm(closedTerm, projectTerm);
 		}
 		catch(Exception e){
 			e.printStackTrace();
-			assert false;
-			throw new IllegalStateException("Unable to pull the Oid of the project.");
+			System.err.println("Unable to pull the Oid of the project.");
 		}
-		return new AndFilterTerm(closedTerm, projectTerm);
+		return result;
 	}
 	
 	/**
 	Calculates a String to represent the value of the <code>def</code> attribute of <code>asset</code>.
 	@param asset The asset which will be examined for the attribute defined by def.
+	@param def The attribute of the asset from which the value will be extracted.
 	@return a String to represent the value of the <code>def</code> attribute of <code>asset</code>.
 	*/
 	private String attributeToString(Asset asset, IAttributeDefinition def){

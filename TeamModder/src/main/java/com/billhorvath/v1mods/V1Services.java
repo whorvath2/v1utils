@@ -71,7 +71,6 @@ public class V1Services{
 	
 	/**
 	Returns a String view of the access token which authenticates this application with VersionOne.
-	@param certFile The location of the file containing the encrypted access token.
 	@return the access token which authenticates this application with VersionOne.
 	*/
 	private String getAccessToken(){

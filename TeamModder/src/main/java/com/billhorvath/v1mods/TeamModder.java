@@ -43,6 +43,9 @@ public class TeamModder{
 	}
 	
 	/**
+	Finds a VersionOne Member by their (full) name.
+	@param name The Member's full name; e.g., <code>Bill Horvath</code>;
+	@return the Asset representing the Member whose full name matches <code>name</code>.
 	*/
 	private Asset findMember(String name){
 
