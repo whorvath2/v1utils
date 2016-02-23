@@ -13,7 +13,7 @@ public class V1UtilsTest{
 	}
 	
 	@Test
-	public void knownAssetTypeButBadAttributeNamesReturnsEmptyList(){
+	public void knownAssetTypeButBadAttributeNameReturnsEmptyList(){
 
 		assertTrue("List should be empty since attribute doesn't exist within a known good asset", V1Utils.findAssets("Story", "Foobar").size() == 0);
 	}

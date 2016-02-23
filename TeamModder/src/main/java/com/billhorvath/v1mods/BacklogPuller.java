@@ -20,7 +20,7 @@ public class BacklogPuller{
 	private static BacklogPuller instance;
 	
 	public enum BacklogType {
-		PRODUCT, CURRENT_SPRINT
+		PRODUCT, SPRINT
 	}
 	
 	private static final String
@@ -187,7 +187,7 @@ public class BacklogPuller{
 		List<Asset> assets = 
 			new ArrayList<Asset>(V1Utils.findAssets(STORY, groupTerm, attStrs));
 			
-		groupTerm = buildFilter(DEFECT);
+		groupTerm = buildFilter(DEFECT, projectID, sprintID);
 		assets.addAll(V1Utils.findAssets(DEFECT, groupTerm, attStrs));
 
 		final IAttributeDefinition storyOrderAttDef = 
@@ -197,7 +197,7 @@ public class BacklogPuller{
 			V1Utils.getAttribute(DEFECT, ORDER);
 		
 		Collections.sort(assets, new Comparator<Asset>(){
-		
+		 
 			public int compare(Asset apple, Asset orange){
 				
 				try{
@@ -213,7 +213,10 @@ public class BacklogPuller{
 							storyOrderAttDef).getValue()
 						: (String)orange.getAttribute(
 							defectOrderAttDef).getValue();
-					return -1 * (new Long(appleStr).compareTo(new Long(orangeStr)));
+
+					return new Long(appleStr).compareTo(new Long(orangeStr));
+
+// 					return -1 * (new Long(appleStr).compareTo(new Long(orangeStr)));
 				}
 				catch(Exception e){
 					e.printStackTrace();
@@ -313,6 +316,7 @@ public class BacklogPuller{
 		if (sprintID != null && !(sprintID.equals(""))){
 			IAttributeDefinition sprintDef = V1Utils.getAttribute(assetType, SPRINT);
 			sprintTerm = new FilterTerm(sprintDef);
+			sprintTerm.equal(sprintID);
 		}
 		
 		try{
