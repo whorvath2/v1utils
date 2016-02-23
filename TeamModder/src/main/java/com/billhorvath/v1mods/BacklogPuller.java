@@ -24,6 +24,7 @@ public class BacklogPuller{
 	}
 	
 	private static final String
+		USAGE		=	"Informative message on how to use this program. TO-DO",
 		NAME 		= 	"Name",
 		ISCLOSED	= 	"IsClosed",
 		ORDER		= 	"Order",
@@ -31,7 +32,10 @@ public class BacklogPuller{
 		STORY 		=	"Story",
 		DEFECT		=	"Defect",
 		NA 			= 	"(N/A)",
-		PROJECTID	= 	"Scope:91791"; //4.3.4
+		SPRINT		=	"Timebox",
+//		PROJECTID	= 	"Scope:91791"; //4.3.4
+// 		PROJECTID	= 	"Scope:108271"; //Accounting/CNA Release 2016 - 1.00
+		PROJECTID	= 	"Scope:0"; //System (All Projects)
 		
 // 	private static final Map<String, String> STORY_STATUSES = 
 // 		new HashMap<String, String>();
@@ -64,9 +68,23 @@ public class BacklogPuller{
 	@param args These are ignored at the moment.
 	*/
 	public static void main(String[] args){
-
-		//for now, we're ignoring the parameters...
-		List<String> items = getInstance().pullBacklog();
+		List<String> items = new ArrayList<String>();
+		
+		if (args == null || args.length == 0){
+			items = getInstance().pullBacklog();
+		}
+		else{
+			String project = args[0];
+			if (project == null || project.matches("\\s*")){
+				System.out.println(USAGE);
+			}
+			String sprint = null;
+			if (args.length == 2){
+				sprint = args[1];
+			}
+			items = getInstance().pullBacklog(project, sprint);
+				
+		}
 		String output = "Backlog Items...\n";
 		for (String item: items){
 			output += "\t" + item + "\n";
@@ -119,23 +137,52 @@ public class BacklogPuller{
 	}
 	
 	/**
+	Delegates to pullBacklog(String projectID), with projectID being the default value PROJECTID.
+	
+	@see BacklogPuller#pullBacklog(String projectID)
 	@return A list of strings containing the names and ranks of the items in the backlog.
-	@see BacklogPuller#pullBacklog(BacklogType)
 	*/
 	public List<String> pullBacklog(){
-		return pullBacklog(BacklogType.PRODUCT);
+		return pullBacklog(PROJECTID);
 	}
 
 	/**
-	Pulls the backlog of open PrimaryWorkItems (stories and defects) for the project designed by PROJECTID, and returns a list of Strings containing the names and ranks of the items in the backlog.
+	Delegates to pullBacklog(String projectID, String sprintID), with sprintID being null.
+	@see BacklogPuller#pullBacklog(String projectID, String sprintID)
+	@param projectID The VersionOne Oid for the desired project.
+	@return A list of strings containing the names and ranks of the items in the backlog.
+	**/
+	public List<String> pullBacklog(String projectID){
+		return pullBacklog(projectID, (String)null);
+	}
+	/**
+	Delegates to pullBacklog(BacklogType type, String projectID, String sprintID), with type being the default value BacklogType.PRODUCT.
+	@see BacklogPuller#pullBacklog(BacklogType type, String projectID, String sprintID)
+	@param projectID The VersionOne Oid for the desired project.
+	@param sprintID The VersionOne Oid for the desired sprint.
+	@return A list of strings containing the names and ranks of the items in the backlog.
+	**/
+	public List<String> pullBacklog(String projectID, String sprintID){
+		return pullBacklog(BacklogType.PRODUCT, projectID, sprintID);
+	}
+
+	/**
+	Pulls the backlog of open PrimaryWorkItems (stories and defects) for the project designated by projectID, and (optionally) the sprint designated by sprintID, and returns a list of Strings containing the names and ranks of the items in the backlog.
 	@param type The type of backlog the client wishes to retrieve (this is currently ignored.)
+	@param projectID The VersionOne Oid for the desired project.
+	@param sprintID The VersionOne Oid for the desired sprint.
 	@return A list of strings containing the names and ranks of the items in the backlog.
 	*/
-	public List<String> pullBacklog(BacklogType type){
+	public List<String> pullBacklog(BacklogType type, String projectID, String sprintID){
 
+		assert projectID != null;
+		assert type != null;
+		//sprintID may be null
+		System.err.println("type = " + type + "  projectID = " + projectID + "  sprintID = " + sprintID);
+		
 		final String[] attStrs = {NAME, ISCLOSED, ORDER};
 
-		IFilterTerm groupTerm = buildFilter(STORY);
+		IFilterTerm groupTerm = buildFilter(STORY, projectID, sprintID);
 		
 		List<Asset> assets = 
 			new ArrayList<Asset>(V1Utils.findAssets(STORY, groupTerm, attStrs));
@@ -200,11 +247,59 @@ public class BacklogPuller{
 	}
 	
 	/**
-	Constructs an IFilterTerm that will limit a VersionOne Query to items that are still open, and which are associated with the project designated by PROJECTID.
+	Delegates to buildFilter(String assetType, String projectID) and uses the constant PROJECTID as the (default) value for the projectID parameter.
+	
+	@see BacklogPuller#buildFilter(String assetType, String projectID)
 	@param assetType The name of the type of asset on which the filter will operate. Also see <a href="https://www8.v1host.com/ParishSOFTLLC/meta.v1?xsl=api.xsl">the VersionOne meta page.</a>
-	@return an IFilterTerm that will limit a VersionOne Query to items that are still open, and which are associated with the project designated by PROJECTID.
+	@return an IFilterTerm that will limit a VersionOne Query to items that are still open, and which are associated with the project designated by the default value of PROJECTID, a constant of this class.
 	*/
 	private IFilterTerm buildFilter(String assetType){
+
+		return buildFilter(assetType, PROJECTID);
+// 		IFilterTerm result = null;
+// 		IAttributeDefinition closedDef = V1Utils.getAttribute(assetType, ISCLOSED);
+// 		FilterTerm closedTerm = new FilterTerm(closedDef);
+// 		closedTerm.equal(Boolean.FALSE);
+// 		
+// 		IAttributeDefinition projectDef = V1Utils.getAttribute(assetType, PROJECT);
+// 		FilterTerm projectTerm = new FilterTerm(projectDef);
+// 		try{
+// 			Oid oid = V1Services.getInstance().services().getOid(PROJECTID);
+// 			projectTerm.equal(oid);
+// 			result = new AndFilterTerm(closedTerm, projectTerm);
+// 		}
+// 		catch(Exception e){
+// 			e.printStackTrace();
+// 			System.err.println("Unable to pull the Oid of the project.");
+// 		}
+// 		return result;
+	}
+	
+	
+	/**
+	Delegates to buildFilter(String assetType, String projectID, String sprintID), and uses null as the (default) value for the sprintID parameter.
+	
+	@see BacklogPuller#buildFilter(String assetType, String projectID, String sprintID)
+	@param assetType The name of the type of asset on which the filter will operate. Also see <a href="https://www8.v1host.com/ParishSOFTLLC/meta.v1?xsl=api.xsl">the VersionOne meta page.</a>
+	@param projectID The plain-text name of the unique identifier for a project, known in VersionOne as an Oid (Object identifier)
+
+	@return an IFilterTerm that will limit a VersionOne Query to items that are still open, and which are associated with the project designated by the value of projectID.
+	**/
+	private IFilterTerm buildFilter(String assetType, String projectID){
+		return buildFilter(assetType, projectID, (String)null);		
+	}
+
+	/**
+	Constructs an IFilterTerm that will limit a VersionOne Query to items that are still open, and which are associated with the project designated by projectID and the sprint designated by sprintID.
+	
+	@param assetType The name of the type of asset on which the filter will operate. Also see <a href="https://www8.v1host.com/ParishSOFTLLC/meta.v1?xsl=api.xsl">the VersionOne meta page.</a>
+	@param projectID The plain-text name of VersionOne's unique identifier for a project.
+	@param sprintID The plain-text name of VersionOne's unique identifier for a Sprint. May be null.
+
+	@return an IFilterTerm that will limit a VersionOne Query to items that are still open, and which are associated with the project designated by projectID and the sprint designated by sprintID. If assetType or projectID are null, or if assetType, projectID, or sprintID are not recognized by VersionOne, this method <i>may</i> return null.
+	**/
+	private IFilterTerm buildFilter(String assetType, String projectID, 
+		String sprintID){
 
 		IFilterTerm result = null;
 		IAttributeDefinition closedDef = V1Utils.getAttribute(assetType, ISCLOSED);
@@ -213,16 +308,27 @@ public class BacklogPuller{
 		
 		IAttributeDefinition projectDef = V1Utils.getAttribute(assetType, PROJECT);
 		FilterTerm projectTerm = new FilterTerm(projectDef);
+
+		FilterTerm sprintTerm = null;
+		if (sprintID != null && !(sprintID.equals(""))){
+			IAttributeDefinition sprintDef = V1Utils.getAttribute(assetType, SPRINT);
+			sprintTerm = new FilterTerm(sprintDef);
+		}
+		
 		try{
-			Oid oid = V1Services.getInstance().services().getOid(PROJECTID);
+			Oid oid = V1Services.getInstance().services().getOid(projectID);
 			projectTerm.equal(oid);
-			result = new AndFilterTerm(closedTerm, projectTerm);
+			
+			result = (sprintTerm != null)
+			? new AndFilterTerm(closedTerm, projectTerm, sprintTerm)
+			: new AndFilterTerm(closedTerm, projectTerm);
 		}
 		catch(Exception e){
 			e.printStackTrace();
-			System.err.println("Unable to pull the Oid of the project.");
+			System.err.println("Unable to construct the IFilterTerm.");
 		}
 		return result;
+		
 	}
 	
 	/**
