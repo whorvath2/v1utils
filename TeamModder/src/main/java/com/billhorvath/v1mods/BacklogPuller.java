@@ -24,7 +24,7 @@ public class BacklogPuller{
 	}
 	
 	private static final String
-		USAGE		=	"Informative message on how to use this program. TO-DO",
+		USAGE		=	"\nUsage: java -jar VersionOneInterface-1.4.jar [Scope:[projectOid]] [Timebox:[sprintOid]]\n\n",
 		NAME 		= 	"Name",
 		ID			=	"ID",
 		NUMBER		= 	"Number",
@@ -77,12 +77,21 @@ public class BacklogPuller{
 		}
 		else{
 			String project = args[0];
-			if (project == null || project.matches("\\s*")){
+			if (project == null 
+			|| project.matches("\\s*")
+			|| !(project.trim().matches("Scope:\\d+"))){
 				System.out.println(USAGE);
+				System.exit(1);
 			}
 			String sprint = null;
 			if (args.length == 2){
 				sprint = args[1];
+				if (sprint == null 
+				|| sprint.matches("\\s*")
+				|| !(sprint.trim().matches("Timebox:\\d+"))){
+					System.out.println(USAGE);
+					System.exit(1);
+				}
 			}
 			items = getInstance().pullBacklog(project, sprint);
 				
