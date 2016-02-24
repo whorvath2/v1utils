@@ -26,6 +26,8 @@ public class BacklogPuller{
 	private static final String
 		USAGE		=	"Informative message on how to use this program. TO-DO",
 		NAME 		= 	"Name",
+		ID			=	"ID",
+		NUMBER		= 	"Number",
 		ISCLOSED	= 	"IsClosed",
 		ORDER		= 	"Order",
 		PROJECT 	= 	"Scope",
@@ -114,7 +116,7 @@ public class BacklogPuller{
 	}
 	
 	/**
-	Writes <code>output</code> as plain-text (UTF-8) to a file at [current working directory]/Backlog.txt.
+	Writes <code>output</code> as plain-text (UTF-8) to a file at [current working directory]/Backlog.html.
 	@param output The string to be written out.
 	@return A file containing the output, or null if there was an error creating or writing to the file.
 	*/
@@ -122,7 +124,7 @@ public class BacklogPuller{
 		File result = null;
 		Path path = null;
 		try{
-			path = FileSystems.getDefault().getPath("Backlog.txt");
+			path = FileSystems.getDefault().getPath("Backlog.html");
 			BufferedWriter writer = Files.newBufferedWriter(path);
 			writer.write(output);
 			writer.flush();
@@ -177,10 +179,8 @@ public class BacklogPuller{
 
 		assert projectID != null;
 		assert type != null;
-		//sprintID may be null
-		System.err.println("type = " + type + "  projectID = " + projectID + "  sprintID = " + sprintID);
-		
-		final String[] attStrs = {NAME, ISCLOSED, ORDER};
+
+		final String[] attStrs = {NAME, ISCLOSED, ORDER, ID, NUMBER};
 
 		IFilterTerm groupTerm = buildFilter(STORY, projectID, sprintID);
 		
@@ -215,8 +215,6 @@ public class BacklogPuller{
 							defectOrderAttDef).getValue();
 
 					return new Long(appleStr).compareTo(new Long(orangeStr));
-
-// 					return -1 * (new Long(appleStr).compareTo(new Long(orangeStr)));
 				}
 				catch(Exception e){
 					e.printStackTrace();
@@ -232,20 +230,64 @@ public class BacklogPuller{
 
 		final IAttributeDefinition storyNameAttDef = 
 			V1Utils.getAttribute(STORY, NAME);
-			
 		final IAttributeDefinition defectNameAttDef = 
 			V1Utils.getAttribute(DEFECT, NAME);
 
+		final IAttributeDefinition storyIDAttDef = 
+			V1Utils.getAttribute(STORY, ID);
+		final IAttributeDefinition defectIDAttDef = 
+			V1Utils.getAttribute(DEFECT, ID);
 
-		List<String> result = new ArrayList<String>(assets.size());
+		final IAttributeDefinition storyNumAttDef = 
+			V1Utils.getAttribute(STORY, NUMBER);			
+		final IAttributeDefinition defectNumAttDef = 
+			V1Utils.getAttribute(DEFECT, NUMBER);
+
+		final IAssetType storyType = V1Utils.assetType(STORY);
+
+		List<String> result = new ArrayList<String>(assets.size() + 4);
+		result.add("<html><body><ol>");
+		
 		int i = 0;
+		String name, id, num, url = null;
+		String baseUrlStory = "<a href=\"https://www8.v1host.com/ParishSOFTLLC/story.mvc/Summary?oidToken=";
+		String baseUrlDefect = "<a href=\"https://www8.v1host.com/ParishSOFTLLC/defect.mvc/Summary?oidToken=";
+		String midLink = "\">";
+		String endLink = "</a>";
 		for (Asset asset : assets){
-			IAssetType storyType = V1Utils.assetType(STORY);
-			IAttributeDefinition attDef = (asset.getAssetType().equals(storyType))
+			boolean isStory = asset.getAssetType().equals(storyType);
+			IAttributeDefinition attDef = (isStory)
 				? storyNameAttDef
 				: defectNameAttDef;
-			result.add(String.valueOf(++i) + ": " + attributeToString(asset, attDef));
+			name = attributeToString(asset, attDef);
+
+			attDef = (isStory)
+				? storyNumAttDef
+				: defectNumAttDef;
+			num = attributeToString(asset, attDef);
+
+			attDef = (isStory)
+				? storyIDAttDef
+				: defectIDAttDef;
+			id = attributeToString(asset, attDef);
+			String[] idArr = id.split(":",2);
+			String baseUrl = (isStory)
+			? baseUrlStory
+			: baseUrlDefect;
+			
+			String startLink = baseUrl + idArr[0] + "%3A" + idArr[1] + midLink;
+			result.add(
+			"<li>"
+// 			+ String.valueOf(++i) 
+			+ ": " 
+			+ startLink
+			+ num 
+			+ endLink
+			+ "\t" 
+			+ name
+			+ "</li>");
 		}
+		result.add("</ol></body></html>");
 		return result;
 	}
 	
@@ -259,23 +301,6 @@ public class BacklogPuller{
 	private IFilterTerm buildFilter(String assetType){
 
 		return buildFilter(assetType, PROJECTID);
-// 		IFilterTerm result = null;
-// 		IAttributeDefinition closedDef = V1Utils.getAttribute(assetType, ISCLOSED);
-// 		FilterTerm closedTerm = new FilterTerm(closedDef);
-// 		closedTerm.equal(Boolean.FALSE);
-// 		
-// 		IAttributeDefinition projectDef = V1Utils.getAttribute(assetType, PROJECT);
-// 		FilterTerm projectTerm = new FilterTerm(projectDef);
-// 		try{
-// 			Oid oid = V1Services.getInstance().services().getOid(PROJECTID);
-// 			projectTerm.equal(oid);
-// 			result = new AndFilterTerm(closedTerm, projectTerm);
-// 		}
-// 		catch(Exception e){
-// 			e.printStackTrace();
-// 			System.err.println("Unable to pull the Oid of the project.");
-// 		}
-// 		return result;
 	}
 	
 	
@@ -355,7 +380,9 @@ public class BacklogPuller{
 							if (obj != null){
 								result += obj.toString();
 							}
-							else result += NA;
+							else {
+								result += NA;
+							}
 							result += ", ";
 						}
 						result = result.substring(0, result.length() - 2);
@@ -365,14 +392,16 @@ public class BacklogPuller{
 						if (str.equals("NULL")){
 							str = NA;
 						}
-						else if (str.matches("[A-Za-z]+:[0-9]+")){
+// 						else if (str.matches("[A-Za-z]+:[0-9]+")){
 // 							String number = str.split(":")[1];
 // 							str = STORY_STATUSES.get(number);
-						}
+// 						}
 						result += str;
 					}
 				}
-				else result += NA;
+				else {
+					result += NA;
+				}
 			}
 			catch(Exception e){
 				assert false;
@@ -380,7 +409,22 @@ public class BacklogPuller{
 				result += "ERROR!";
 			}
 		}
-		else result += NA;
+		else{
+			System.err.println("No value for attribute " + def.getName());
+			String str = "Available assets include...\n";
+			Map<String, Attribute> attributes = asset.getAttributes();
+			Set<String> attNames = attributes.keySet();
+			for (String attName : attNames){
+				try{
+					str += "\t" + attName + ": " + attributes.get(attName).getValue() + "\n";
+				}
+				catch(Exception e){
+					e.printStackTrace();
+				}
+			}
+			System.err.println(str);
+		 	result += NA;
+		}
 		return result;
 	}
 }
