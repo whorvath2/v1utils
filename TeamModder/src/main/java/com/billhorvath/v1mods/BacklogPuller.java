@@ -279,7 +279,7 @@ public class BacklogPuller{
 			result.add(
 			"<li>"
 // 			+ String.valueOf(++i) 
-			+ ": " 
+// 			+ ": " 
 			+ startLink
 			+ num 
 			+ endLink
