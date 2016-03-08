@@ -11,7 +11,7 @@ import com.versionone.apiclient.filters.*;
 import com.versionone.apiclient.interfaces.*;
 
 /**
-<p>A class for pulling the Product Backlog from VersionOne and making it available in plain text.</p> 
+<p>A class for pulling the Product Backlog from VersionOne and making it available in HTML format.</p> 
 <p>As presently constructed, this class queries all open stories and defects in a particular project, sorts them according to Rank, and outputs a file containing the results.</p>
 <p>To-Do:</p><ul><li>Include Story Point Estimates in the output.</li><li>Mark the items being developed in the current Sprint.</li><li>Include items in the current Sprint that are closed.</li></ul>
 */
@@ -76,23 +76,27 @@ public class BacklogPuller{
 			items = getInstance().pullBacklog();
 		}
 		else{
-			String project = args[0];
-			if (project == null 
-			|| project.matches("\\s*")
-			|| !(project.trim().matches("Scope:\\d+"))){
-				System.out.println(USAGE);
-				System.exit(1);
-			}
-			String sprint = null;
-			if (args.length == 2){
-				sprint = args[1];
-				if (sprint == null 
-				|| sprint.matches("\\s*")
-				|| !(sprint.trim().matches("Timebox:\\d+"))){
+			List<String> argsList = Arrays.asList(args);
+			String project = "";
+			String sprint = "";
+			
+			for (String arg: argsList){
+				arg = arg.trim();
+				if (arg.matches("Scope:\\d+")){
+					project = arg;
+				}
+				else if (arg.matches("Timebox:\\d+")){
+					sprint = arg;
+				}
+				else{
 					System.out.println(USAGE);
 					System.exit(1);
 				}
 			}
+			
+			//use the default project if it's not specified on the command line:
+			if (project.equals("")) project = PROJECTID; 			
+
 			items = getInstance().pullBacklog(project, sprint);
 				
 		}
@@ -337,34 +341,34 @@ public class BacklogPuller{
 	**/
 	private IFilterTerm buildFilter(String assetType, String projectID, 
 		String sprintID){
+		
+		List<IFilterTerm> terms = new ArrayList<IFilterTerm>();
 
 		IFilterTerm result = null;
 		IAttributeDefinition closedDef = V1Utils.getAttribute(assetType, ISCLOSED);
-		FilterTerm closedTerm = new FilterTerm(closedDef);
-		closedTerm.equal(Boolean.FALSE);
+		FilterTerm term = new FilterTerm(closedDef);
+		term.equal(Boolean.FALSE);
+		terms.add(term);
 		
 		IAttributeDefinition projectDef = V1Utils.getAttribute(assetType, PROJECT);
-		FilterTerm projectTerm = new FilterTerm(projectDef);
-
-		FilterTerm sprintTerm = null;
-		if (sprintID != null && !(sprintID.equals(""))){
-			IAttributeDefinition sprintDef = V1Utils.getAttribute(assetType, SPRINT);
-			sprintTerm = new FilterTerm(sprintDef);
-			sprintTerm.equal(sprintID);
-		}
-		
+		term = new FilterTerm(projectDef);
 		try{
 			Oid oid = V1Services.getInstance().services().getOid(projectID);
-			projectTerm.equal(oid);
-			
-			result = (sprintTerm != null)
-			? new AndFilterTerm(closedTerm, projectTerm, sprintTerm)
-			: new AndFilterTerm(closedTerm, projectTerm);
+			term.equal(oid);
+			terms.add(term);
 		}
 		catch(Exception e){
 			e.printStackTrace();
 			System.err.println("Unable to construct the IFilterTerm.");
 		}
+
+		if (sprintID != null && !(sprintID.equals(""))){
+			IAttributeDefinition sprintDef = V1Utils.getAttribute(assetType, SPRINT);
+			term = new FilterTerm(sprintDef);
+			term.equal(sprintID);
+			terms.add(term);
+		}
+		result = new AndFilterTerm((FilterTerm[])terms.toArray(new FilterTerm[terms.size()]));
 		return result;
 		
 	}
