@@ -24,7 +24,7 @@ public class BacklogPuller{
 	}
 	
 	private static final String
-		USAGE		=	"\nUsage: java -jar VersionOneInterface-1.4.jar [Scope:[projectOid]] [Timebox:[sprintOid]]\n\n",
+		USAGE		=	"\nUsage: java -jar VersionOneInterface-1.4.jar [Scope:[projectOid]] [Timebox:[sprintOid]] [Team:[teamOid]]\n\t...All parameters are optional, and may appear in any order.\n\n",
 		NAME 		= 	"Name",
 		ID			=	"ID",
 		NUMBER		= 	"Number",
