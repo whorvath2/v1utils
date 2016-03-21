@@ -24,7 +24,7 @@ public class BacklogPuller{
 	}
 	
 	private static final String
-		USAGE		=	"\nUsage: java -jar VersionOneInterface-1.4.jar [Scope:[projectOid]] [Timebox:[sprintOid]] [Team:[teamOid]]\n\t...All parameters are optional, and may appear in any order.\n\n",
+		USAGE		=	"\nUsage: java -jar VersionOneInterface-1.4.jar [Scope:[projectOid]] [Timebox:[sprintOid]] [Team:[teamOid]] [IncludeClosed:[true|false]]\n\t...All parameters are optional, and may appear in any order.\n\n",
 		NAME 		= 	"Name",
 		ID			=	"ID",
 		NUMBER		= 	"Number",
@@ -81,6 +81,7 @@ public class BacklogPuller{
 			String project = "";
 			String sprint = "";
 			String team = "";
+			boolean includeClosed = false;
 			
 			for (String arg: argsList){
 				arg = arg.trim();
@@ -93,6 +94,10 @@ public class BacklogPuller{
 				else if (arg.matches("Team:\\d+")){
 					team = arg;
 				}
+				else if (arg.matches("IncludeClosed:(true|false)")){
+					String str = arg.split(":")[1];
+					includeClosed = str.equals("true");
+				}
 				else{
 					System.out.println(USAGE);
 					System.exit(1);
@@ -102,7 +107,7 @@ public class BacklogPuller{
 			//use the default project if it's not specified on the command line:
 			if (project.equals("")) project = PROJECTID; 			
 
-			items = getInstance().pullBacklog(project, sprint, team);
+			items = getInstance().pullBacklog(project, sprint, team, includeClosed);
 				
 		}
 		String output = "Backlog Items...\n";
@@ -188,17 +193,21 @@ public class BacklogPuller{
 
 	/**
 	Delegates to pullBacklog(BacklogType type, String projectID, String sprintID, String teamID), with type being the default value BacklogType.PRODUCT.
-	@see BacklogPuller#pullBacklog(BacklogType type, String projectID, String sprintID, String teamID)
+	@see BacklogPuller#pullBacklog(String projectID, String sprintID, String teamID, boolean includeClosed)
 	@param projectID The VersionOne Oid for the desired project.
 	@param sprintID The VersionOne Oid for the desired sprint.
 	@param teamID The VersionOne Oid for the desired team.
 	@return A list of strings containing the names and ranks of the items in the backlog.
 	**/
 	public List<String> pullBacklog(String projectID, String sprintID, String teamID){
-		return pullBacklog(BacklogType.PRODUCT, projectID, sprintID, teamID);
+		return pullBacklog(projectID, sprintID, teamID, false);
 	}
 	
 	
+	
+	public List<String> pullBacklog(String projectID, String sprintID, String teamID, boolean includeClosed){
+		return pullBacklog(BacklogType.PRODUCT, projectID, sprintID, teamID, includeClosed);
+	}
 	
 	/**
 	Pulls the backlog of open PrimaryWorkItems (stories and defects) for the project designated by projectID, and (optionally) the sprint designated by sprintID, and returns a list of Strings containing the names and ranks of the items in the backlog.
@@ -206,21 +215,22 @@ public class BacklogPuller{
 	@param projectID The VersionOne Oid for the desired project.
 	@param sprintID The VersionOne Oid for the desired sprint.
 	@param teamID The VersionOne Oid for the desired team.
+	@param includeClosed A boolean value indicating whether the returned results should include stories that have been closed.
 	@return A list of strings containing the names and ranks of the items in the backlog.
 	*/
-	public List<String> pullBacklog(BacklogType type, String projectID, String sprintID, String teamID){
+	public List<String> pullBacklog(BacklogType type, String projectID, String sprintID, String teamID, boolean includeClosed){
 
 		assert projectID != null;
 		assert type != null;
 
 		final String[] attStrs = {NAME, ISCLOSED, ORDER, ID, NUMBER, TEAM};
 
-		IFilterTerm groupTerm = buildFilter(STORY, projectID, sprintID, teamID);
+		IFilterTerm groupTerm = buildFilter(STORY, projectID, sprintID, teamID, includeClosed);
 		
 		List<Asset> assets = 
 			new ArrayList<Asset>(V1Utils.findAssets(STORY, groupTerm, attStrs));
 			
-		groupTerm = buildFilter(DEFECT, projectID, sprintID, teamID);
+		groupTerm = buildFilter(DEFECT, projectID, sprintID, teamID, includeClosed);
 		assets.addAll(V1Utils.findAssets(DEFECT, groupTerm, attStrs));
 
 		final IAttributeDefinition storyOrderAttDef = 
@@ -366,7 +376,7 @@ public class BacklogPuller{
 	}
 
 	/**
-	Constructs an IFilterTerm that will limit a VersionOne Query to items that are still open, and which are associated with the project designated by projectID, the sprint designated by sprintID, and the team designated by teamID.
+	Delegates to buildFilter(String assetType, String projectID, String sprintID, String teamID), and specifies that closed items should not be included in the results.
 	
 	@param assetType The name of the type of asset on which the filter will operate. Also see <a href="https://www8.v1host.com/ParishSOFTLLC/meta.v1?xsl=api.xsl">the VersionOne meta page.</a>
 	@param projectID The plain-text name of VersionOne's unique identifier for a project.
@@ -377,13 +387,31 @@ public class BacklogPuller{
 	**/
 	private IFilterTerm buildFilter(String assetType, String projectID, 
 		String sprintID, String teamID){
-		
+		return buildFilter(assetType, projectID, sprintID, teamID, false);
+	}
+	
+	
+	
+	/**
+	Constructs an IFilterTerm that will limit a VersionOne Query to items that are associated with the project designated by projectID, the sprint designated by sprintID, the team designated by teamID, and which are open or closed based on the value of includeClosed.
+	
+	@param assetType The name of the type of asset on which the filter will operate. Also see <a href="https://www8.v1host.com/ParishSOFTLLC/meta.v1?xsl=api.xsl">the VersionOne meta page.</a>
+	@param projectID The plain-text name of VersionOne's unique identifier for a project.
+	@param sprintID The plain-text name of VersionOne's unique identifier for a Sprint. May be null.
+	@param teamID The plain-text name of VersionOne's unique identifier for a Team. May be null.
+	@param includeClosed The boolean value indicating whether closed items should be included in the results.
+
+	@return an IFilterTerm that will limit a VersionOne Query to items that are still open, and which are associated with the project designated by projectID and the sprint designated by sprintID. If assetType or projectID are null, or if assetType, projectID, or sprintID are not recognized by VersionOne, this method <i>may</i> return null.
+	**/
+	private IFilterTerm buildFilter(String assetType, String projectID, 
+		String sprintID, String teamID, boolean includeClosed){
+
 		List<IFilterTerm> terms = new ArrayList<IFilterTerm>();
 
 		IFilterTerm result = null;
 		IAttributeDefinition closedDef = V1Utils.getAttribute(assetType, ISCLOSED);
 		FilterTerm term = new FilterTerm(closedDef);
-		term.equal(Boolean.FALSE);
+		term.equal(Boolean.valueOf(includeClosed));
 		terms.add(term);
 		
 		IAttributeDefinition projectDef = V1Utils.getAttribute(assetType, PROJECT);
