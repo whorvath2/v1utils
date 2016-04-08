@@ -1,2 +1,3 @@
 # v1mods
-This repository is for applications leveraging the VersionOne API.
+ This is a repository of applications which utilize the VersionOne API for various purposes.
+ 
