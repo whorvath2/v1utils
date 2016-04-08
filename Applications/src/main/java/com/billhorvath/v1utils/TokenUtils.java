@@ -5,7 +5,7 @@ import java.net.*;
 import java.nio.file.*;
 
 /**
-	This class provides a means of setting a new token for accessing the VersionOne API from other classes in this package.
+	This class provides a means of setting a new authorization token for accessing the VersionOne API from other classes in this package.
 */
 public class TokenUtils{
 
@@ -19,9 +19,9 @@ public class TokenUtils{
 		if (args == null || args.length == 0){
 			System.out.println("You must initialize this program with the "
 				+ "token for which you wish to create a certificate."
-				+ "\nUsage: java -cp . com.billhorvath.v1mods.TokenUtils "
+				+ "\nUsage: java -cp . com.billhorvath.v1utils.TokenUtils "
 				+ "[token]\n\tor java -jar [jarname].jar " 
-				+ "com.billhorvath.v1mods.TokenUtils [token]");
+				+ "com.billhorvath.v1utils.TokenUtils [token]");
 			System.exit(1);			
 		}
 		else{
@@ -110,23 +110,20 @@ public class TokenUtils{
 		return result;
 	}
 	/**
-	If file exists, overwrites file with a file that is zero bytes in length. Otherwise, creates a new file at the same location.
+	If <code>file</code> exists, overwrites <code>file</code> with a file that is zero bytes in length. Otherwise, creates a new file at the same location.
 	@param file The file that will be overwritten or created.
 	@return true if the entire operation completed successfully; false otherwise.
 	*/
 	private static boolean resetFile(File file){
 		boolean result = false;
-		if (file.exists()){
-			if (!(file.delete())){
-				System.out.println("Unable to delete " + file);
-				assert false;
-				return result;
-			}
-		}
 		try{
+			if (file.exists()){
+				if (!(file.delete())){
+					throw new Exception("File deletion failed.");
+				}
+			}
 			if (!(file.createNewFile())){
-				System.out.println("Unable to create" + file);
-				assert false;
+				throw new Exception("File creation failed.");
 			}
 			else result = true;
 		}

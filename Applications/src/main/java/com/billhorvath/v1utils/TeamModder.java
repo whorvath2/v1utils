@@ -9,10 +9,10 @@ import com.versionone.apiclient.interfaces.*;
 
 
 /**
-	The purpose of this class is to allow modification of the membership of 
-	VersionOne teams.
+	<p>The original purpose of this class was to allow modification of the membership of VersionOne teams. It was created due to a misunderstanding of how the Teams functionality in VersionOne is intended to work.</p>
+	<p><b>This class has been deprecated.</b></p>
 */
-
+@Deprecated
 public class TeamModder{
 
 	private final IServices services;
@@ -27,11 +27,8 @@ public class TeamModder{
 	*/
 	public static void main(String[] arguments){
 		TeamModder modder = getInstance();
-// 		boolean result = modder.addToTeam("10326", "Test Team");
-		Asset team = modder.findTeam("Silver Bullet");
-// 		Asset member = modder.findMember("Bill Horvath");
+		Asset team = modder.findTeam("My Team");
 		System.out.println("Team = " + team);
-// 		System.out.println("Member = " + member);	
 	}
 	
 	/**

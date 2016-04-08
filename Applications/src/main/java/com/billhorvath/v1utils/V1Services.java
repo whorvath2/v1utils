@@ -9,17 +9,17 @@ import com.versionone.apiclient.interfaces.*;
 
 /**
 	This class serves to instantiate and return a connection to VersionOne in the form of a VersionOne Services instance.
+	<p><b>IMPORTANT:</b> For this class to work properly, you must modify the V1_LOC string to match the URL of your VersionOne instance.</p>
 */
 public class V1Services{
 
 	/** The URL for the VersionOne installation from which the Services 
 		will be acquired. */
-	private static final String V1_LOC = 
-		"https://www8.v1host.com/ParishSOFTLLC/";
+	protected static final String V1_LOC = "https://[myV1subdomain].v1host.com/[myBiz]/";
 	/** The name of the application, sent as a header item to VersionOne. */
-	private static final String APPLICATION_NAME = "TeamModder";
+	private static final String APPLICATION_NAME = "v1utils";
 	/** The version of the application, sent as a header item to VersionOne. */
-	private static final String APPLICATION_VERSION = "1.1";
+	private static final String APPLICATION_VERSION = "1.5";
 	
 	/** The services which will be provided to the client class. */
 	private final IServices services;

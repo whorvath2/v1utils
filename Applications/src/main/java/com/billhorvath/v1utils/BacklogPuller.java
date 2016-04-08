@@ -13,7 +13,8 @@ import com.versionone.apiclient.interfaces.*;
 /**
 <p>A class for pulling the Product Backlog from VersionOne and making it available in HTML format.</p> 
 <p>As presently constructed, this class queries all open stories and defects in a particular project, sorts them according to Rank, and outputs a file containing the results.</p>
-<p>To-Do:</p><ul><li>Include Story Point Estimates in the output.</li><li>Mark the items being developed in the current Sprint.</li><li>Include items in the current Sprint that are closed.</li></ul>
+<p><b>IMPORTANT:</b> You must modify the BASE_URL_STORY and BASE_URL_DEFECT string constants to match your particular VersionOne instance.</p>
+<p>To-Do:</p><ul><li>Include Story Point Estimates in the output.</li><li>[Alt. Done] Mark the items being developed in the current Sprint.</li><li>[Partially completed] Include items in the current Sprint that are closed.</li></ul>
 */
 public class BacklogPuller{
 
@@ -24,47 +25,22 @@ public class BacklogPuller{
 	}
 	
 	private static final String
-		USAGE		=	"\nUsage: java -jar VersionOneInterface-1.4.jar [Scope:[projectOid]] [Timebox:[sprintOid]] [Team:[teamOid]] [IncludeClosed:[true|false]]\n\t...All parameters are optional, and may appear in any order.\n\n",
-		NAME 		= 	"Name",
-		ID			=	"ID",
-		NUMBER		= 	"Number",
-		ISCLOSED	= 	"IsClosed",
-		ORDER		= 	"Order",
-		PROJECT 	= 	"Scope",
-		STORY 		=	"Story",
-		DEFECT		=	"Defect",
-		NA 			= 	"(N/A)",
-		SPRINT		=	"Timebox",
-		TEAM		=	"Team",
-//		PROJECTID	= 	"Scope:91791"; //4.3.4
-// 		PROJECTID	= 	"Scope:108271"; //Accounting/CNA Release 2016 - 1.00
-		PROJECTID	= 	"Scope:0"; //System (All Projects)
-		
-// 	private static final Map<String, String> STORY_STATUSES = 
-// 		new HashMap<String, String>();
-// 
-// 	static{
-// 	
-// 		String assetTypeStr = "StoryStatus";
-// 		List<Asset> assets = V1Utils.findAssets(assetTypeStr, "Name");
-// 		for (Asset asset : assets){
-// 			IAttributeDefinition attDef = 
-// 				V1Utils.getAttribute(assetTypeStr, "Name");
-// 			Attribute attribute = asset.getAttribute(attDef);
-// 			if (attribute != null){
-// 				try{
-// 					String attStr = attribute.getValue().toString();
-// 					String attOidStr = asset.getOid().toString().split(":")[1];
-// 					STORY_STATUSES.put(attOidStr, attStr);
-// 				}
-// 				catch(Exception e){
-// 					assert false;
-// 					e.printStackTrace();
-// 					throw new IllegalStateException();
-// 				}
-// 			}
-// 		}
-// 	}
+		ANCHOR				= 	"<a href=\"" + V1Services.V1_LOC,
+		BASE_URL_STORY 		= 	ANCHOR + "story.mvc/Summary?oidToken=",
+		BASE_URL_DEFECT 	= 	ANCHOR + "defect.mvc/Summary?oidToken=",
+		NAME 				= 	"Name",
+		ID					=	"ID",
+		NUMBER				= 	"Number",
+		ISCLOSED			= 	"IsClosed",
+		ORDER				= 	"Order",
+		PROJECT 			= 	"Scope",
+		STORY 				=	"Story",
+		DEFECT				=	"Defect",
+		NA 					= 	"(N/A)",
+		SPRINT				=	"Timebox",
+		TEAM				=	"Team",
+		PROJECTID			= 	"Scope:0", //System (All Projects)
+		USAGE				=	"\nUsage: java -jar VersionOneInterface-1.5.jar [Scope:[projectOid]] [Timebox:[sprintOid]] [Team:[teamOid]] [IncludeClosed:[true|false]]\n\t...All parameters are optional, and may appear in any order.\n\n";
 	
 	/**
 	Pulls the backlog and pushes it out to a file.
@@ -210,7 +186,7 @@ public class BacklogPuller{
 	}
 	
 	/**
-	Pulls the backlog of open PrimaryWorkItems (stories and defects) for the project designated by projectID, and (optionally) the sprint designated by sprintID, and returns a list of Strings containing the names and ranks of the items in the backlog.
+	Pulls the backlog of open PrimaryWorkItems (stories and defects) for the project designated by projectID, and (optionally) the sprint designated by sprintID, and returns an HTML page containing the names and ranks of the items in the backlog.
 	@param type The type of backlog the client wishes to retrieve (this is currently ignored.)
 	@param projectID The VersionOne Oid for the desired project.
 	@param sprintID The VersionOne Oid for the desired sprint.
@@ -293,8 +269,6 @@ public class BacklogPuller{
 		
 		int i = 0;
 		String name, id, num, url = null;
-		String baseUrlStory = "<a href=\"https://www8.v1host.com/ParishSOFTLLC/story.mvc/Summary?oidToken=";
-		String baseUrlDefect = "<a href=\"https://www8.v1host.com/ParishSOFTLLC/defect.mvc/Summary?oidToken=";
 		String midLink = "\">";
 		String endLink = "</a>";
 		for (Asset asset : assets){
@@ -315,8 +289,8 @@ public class BacklogPuller{
 			id = attributeToString(asset, attDef);
 			String[] idArr = id.split(":",2);
 			String baseUrl = (isStory)
-			? baseUrlStory
-			: baseUrlDefect;
+			? BASE_URL_STORY
+			: BASE_URL_DEFECT;
 			
 			String startLink = baseUrl + idArr[0] + "%3A" + idArr[1] + midLink;
 			result.add(
