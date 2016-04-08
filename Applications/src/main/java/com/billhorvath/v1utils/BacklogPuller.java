@@ -13,7 +13,7 @@ import com.versionone.apiclient.interfaces.*;
 /**
 <p>A class for pulling the Product Backlog from VersionOne and making it available in HTML format.</p> 
 <p>As presently constructed, this class queries all open stories and defects in a particular project, sorts them according to Rank, and outputs a file containing the results.</p>
-<p><b>IMPORTANT:</b> You must modify the BASE_URL_STORY and BASE_URL_DEFECT string constants to match your particular VersionOne instance.</p>
+<p><b>IMPORTANT:</b> You must modify the V1Services.V1_LOC string constant in this package to match your particular VersionOne instance.</p>
 <p>To-Do:</p><ul><li>Include Story Point Estimates in the output.</li><li>[Alt. Done] Mark the items being developed in the current Sprint.</li><li>[Partially completed] Include items in the current Sprint that are closed.</li></ul>
 */
 public class BacklogPuller{
