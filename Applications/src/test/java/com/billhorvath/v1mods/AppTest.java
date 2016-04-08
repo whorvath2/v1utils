@@ -1,4 +1,4 @@
-package com.billhorvath.v1mods;
+package com.billhorvath.v1utils;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
