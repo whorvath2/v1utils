@@ -1,4 +1,4 @@
-# v1mods
+# v1utils
  This is a repository of Java applications which interface with the VersionOne API for various purposes. Fully functional applications include:
 
  *   _BacklogPuller_ Pulls the Product Backlog according to Project, Sprint, and/or Team. Operated from the command line.
