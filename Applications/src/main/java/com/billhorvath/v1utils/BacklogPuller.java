@@ -26,8 +26,8 @@ public class BacklogPuller{
 	
 	private static final String
 		ANCHOR				= 	"<a href=\"" + V1Services.V1_LOC,
-		BASE_URL_STORY 		= 	ANCHOR + "story.mvc/Summary?oidToken=",
-		BASE_URL_DEFECT 	= 	ANCHOR + "defect.mvc/Summary?oidToken=",
+		BASE_URL_STORY		= 	ANCHOR + "story.mvc/Summary?oidToken=",
+		BASE_URL_DEFECT		= 	ANCHOR + "defect.mvc/Summary?oidToken=",
 		NAME 				= 	"Name",
 		ID					=	"ID",
 		NUMBER				= 	"Number",
@@ -36,7 +36,7 @@ public class BacklogPuller{
 		PROJECT 			= 	"Scope",
 		STORY 				=	"Story",
 		DEFECT				=	"Defect",
-		NA 					= 	"(N/A)",
+		NA					= 	"(N/A)",
 		SPRINT				=	"Timebox",
 		TEAM				=	"Team",
 		PROJECTID			= 	"Scope:0", //System (All Projects)
